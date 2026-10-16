@@ -19,6 +19,9 @@ Asset links in `index.html` (and the font URL in `css/style.css`) carry `?v=<con
 hash>`. Run `./stamp.sh` after changing any file under `js/`, `css/` or `fonts/`, and
 before committing; `./stamp.sh --check` verifies. New script tags get a hash on the next run.
 
+Deploy with `./deploy.sh` (FTPS via rclone `ftp_iso3200.net`). That remote is rooted at
+the whole site's web root, so never point rclone anywhere but `drive-challenge/`.
+
 ## Architecture
 
 Classic `<script>` files (not ES modules, so `file://` works) that share top-level

@@ -32,6 +32,10 @@ After editing anything in `js/`, `css/` or `fonts/`, refresh the hashes before d
 ./stamp.sh --check  # exit 1 if any hash is stale
 ```
 
+The live copy at https://iso3200.net/drive-challenge/ is published with `./deploy.sh`
+(`--dry-run` to preview). It refuses to run with stale hashes, mirrors the four game
+paths over FTPS through the rclone remote `ftp_iso3200.net`, and checks the page answers.
+
 ## The cars
 
 | | Top speed | Cornering | Accel (dry) | Accel (wet / snow) |

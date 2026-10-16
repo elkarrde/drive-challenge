@@ -1,6 +1,6 @@
 # Status
 
-*Last updated: 2026-10-16*
+*Last updated: 2026-10-17*
 
 | Field | Value |
 |:--|:--|
@@ -8,7 +8,7 @@
 | Version | untagged |
 | Build | n/a |
 | Tests | none |
-| Deployed | not deployed |
+| Deployed | https://iso3200.net/drive-challenge/ (FTPS via rclone `ftp_iso3200.net`, 2026-10-17) |
 | Blocker | none |
 
 ## Notes
