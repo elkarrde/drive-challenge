@@ -16,7 +16,7 @@ const KEYMAP = [
     gearUp: ['KeyE'], gearDown: ['KeyQ'], fire: ['Space'],
   },
 ];
-const GAME_KEYS = new Set([...KEYMAP.flatMap(m => Object.values(m).flat()), 'Escape', 'KeyP', 'KeyM', 'Backspace']);
+const GAME_KEYS = new Set([...KEYMAP.flatMap(m => Object.values(m).flat()), 'Escape', 'KeyP', 'KeyM', 'KeyN', 'Backspace']);
 
 const Input = {
   held: new Set(),

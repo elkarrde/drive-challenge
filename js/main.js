@@ -22,7 +22,7 @@
   fit();
 
   const STEP = 1 / 60;
-  let last = 0, acc = 0;
+  let last = 0, acc = 0, toast = null;
 
   function frame(now) {
     const dt = Math.min(0.1, (now - last) / 1000 || STEP);
@@ -30,12 +30,15 @@
     acc += dt;
     Input.poll();
     if (Input.key('KeyM')) Sfx.toggleMute();
+    if (Input.key('KeyN')) toast = { text: Music.toggle() ? 'MUSIC ON' : 'MUSIC OFF', t: 1.5 };
     while (acc >= STEP) {
       Game.update(STEP);
       Input.endFrame();
       acc -= STEP;
     }
+    Music.update();
     Game.draw(ctx);
+    if (toast && (toast.t -= dt) > 0) Render.text(ctx, toast.text, SCREEN_W / 2, SCREEN_H - 24, 8, '#ffe040');
     if (Sfx.muted) Render.text(ctx, 'MUTE', SCREEN_W - 4, SCREEN_H - 10, 8, '#ff8060', 'right');
     requestAnimationFrame(frame);
   }
@@ -44,7 +47,9 @@
     Input.init();
     Input.onFirstInput = () => Sfx.init();
     Sprites.init();
+    Music.init();
     Game.screen = new TitleScreen();
+    Game.screen.enter();
     Game.fade = 1;
     Game.fadeDir = -1;
     requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });

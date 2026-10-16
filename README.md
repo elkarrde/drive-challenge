@@ -5,7 +5,8 @@ of three early-'90s cars and race a four-stage championship through the seasons 
 19 computer drivers, alone or with a friend on a split screen.
 
 Plain HTML5 canvas and JavaScript — no build step, no dependencies, no image or sound
-files. All art is drawn in code and all sound is synthesised with Web Audio.
+files. All art is drawn in code and all sound is synthesised with Web Audio, including a chiptune
+soundtrack with its own tune for each season.
 
 ## Play
 
@@ -25,7 +26,7 @@ monospace font.
 | | Top speed | Cornering | Accel (dry) | Accel (wet / snow) |
 |:--|:--:|:--:|:--:|:--:|
 | Lotus Esprit Turbo SE | 4 | 3 | 4 | 3 |
-| Mitsubishi Lancer Evolution III | 2 | 5 | 4 | 5 |
+| Mitsubishi Lancer Evolution I | 2 | 5 | 4 | 5 |
 | Dodge Viper RT/10 | 5 | 2 | 5 | 1 |
 
 Cornering decides how much speed a car loses — and how far it drifts wide — whenever it
@@ -57,6 +58,6 @@ championship goes on as long as either player qualifies.
 | Gear down | . | Q |
 | Select | Enter | Space |
 
-In a one-player game either set of keys works. Esc or P pauses, M mutes.
+In a one-player game either set of keys works. Esc or P pauses, M mutes all sound, N toggles the music.
 Gamepads work too: stick or D-pad steers, A / RT accelerates, X / LT brakes, RB / LB
 change gear, Start pauses.

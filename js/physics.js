@@ -5,9 +5,10 @@
 // three ratings shape the AI cars exactly as they shape the player's.
 //
 // Rating → simulation mapping
-//   speed  1..5  → top speed 208..280 km/h          (190 + 18 * rating)
-//   accel  1..5  → peak thrust 21..49 km/h per sec  (14 + 7 * rating)
-//                  accelDry on dry tarmac, accelWet on rain and snow
+//   speed  1..5  → top speed 226..282 km/h          (212 + 14 * rating)
+//   accel  1..5  → peak thrust, km/h per sec
+//                  accelDry on dry tarmac:   21..49 (14 + 7 * rating)
+//                  accelWet on rain and snow: 29..49 (24 + 5 * rating)
 //   corner 1..5  → speed scrub while turning: 1.32..0.20 (1.6 - 0.28 * rating)
 //                  outward drift in bends:     1.20..0.80 (1.3 - 0.1 * rating)
 // ---------------------------------------------------------------------------
@@ -29,9 +30,9 @@ const Physics = {
   derive(def) {
     const s = def.stats;
     return {
-      top: (190 + 18 * s.speed) * KMH,
+      top: (212 + 14 * s.speed) * KMH,
       accelDry: (14 + 7 * s.accelDry) * KMH,
-      accelWet: (14 + 7 * s.accelWet) * KMH,
+      accelWet: (24 + 5 * s.accelWet) * KMH,
       scrub: 1.6 - 0.28 * s.corner,
       drift: 1.3 - 0.1 * s.corner,
       ratios: def.ratios,

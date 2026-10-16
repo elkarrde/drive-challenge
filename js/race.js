@@ -28,7 +28,7 @@ function makeRoster(rng) {
       def,
       paint: def.aiPaints[Math.floor(rng() * def.aiPaints.length)],
       // Spread from quick to slow; the stage number adds a little on top.
-      base: 0.945 - (i / (AI_DRIVERS.length - 1)) * 0.17 + rng() * 0.015,
+      base: 0.86 - (i / (AI_DRIVERS.length - 1)) * 0.18 + rng() * 0.015,
     };
   });
 }
@@ -221,7 +221,7 @@ class Race {
     const look = 12 + Math.floor(car.speed / KMH / 5);
     let maxC = 0;
     for (let k = 0; k < look; k++) maxC = Math.max(maxC, Math.abs(segs[(base + k) % n].curve));
-    let target = Math.min(car.ph.top * (cruising ? 0.55 : car.skill), Physics.cornerSpeed(car.ph, this.surf, maxC / CURVE_MAX, 0.8));
+    let target = Math.min(car.ph.top * (cruising ? 0.55 : car.skill), Physics.cornerSpeed(car.ph, this.surf, maxC / CURVE_MAX, 0.8 * car.skill));
 
     // Traffic: change lanes around slower cars, or tuck in behind them.
     car.laneTimer -= 1 / 60;

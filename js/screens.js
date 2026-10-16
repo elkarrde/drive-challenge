@@ -126,6 +126,8 @@ class TitleScreen {
     this.newDemo();
   }
 
+  enter() { Music.play('title'); }
+
   newDemo() {
     const season = SEASONS[Game.attractSeason++ % SEASONS.length];
     this.demo = new Race({ season, roster: makeRoster(U.rng(7 + Game.attractSeason)), attract: true });
@@ -175,7 +177,7 @@ class TitleScreen {
 
     UI.text(ctx, this.demo.season.name + ' · ' + this.follow.name + ' · ' + this.follow.def.short, SCREEN_W / 2, 214, 8, COL.dim);
     UI.text(ctx, '3 CARS · 4 SEASONS · 20 DRIVERS', SCREEN_W / 2, 262, 8, COL.text);
-    UI.text(ctx, 'M: SOUND ON/OFF    ESC: BACK / PAUSE', SCREEN_W / 2, 278, 8, COL.dim);
+    UI.text(ctx, 'M: SOUND   N: MUSIC   ESC: BACK / PAUSE', SCREEN_W / 2, 278, 8, COL.dim);
   }
 
   drawControls(ctx) {
@@ -189,6 +191,8 @@ class TitleScreen {
       ['GEAR UP', 'R.SHIFT /', 'E'],
       ['GEAR DOWN', '.', 'Q'],
       ['SELECT', 'ENTER', 'SPACE'],
+      ['PAUSE', 'ESC / P', 'ESC / P'],
+      ['SOUND / MUSIC', 'M / N', 'M / N'],
     ];
     rows.forEach((r, i) => {
       const y = 54 + i * 16, c = i ? COL.text : COL.title;
@@ -204,7 +208,7 @@ class TitleScreen {
       'REACH EACH CHECKPOINT BEFORE TIME RUNS OUT.',
       'FINISH IN THE TOP 10 TO REACH THE NEXT STAGE.',
     ];
-    notes.forEach((n, i) => UI.text(ctx, n, SCREEN_W / 2, 176 + i * 14, 8, i < 3 ? COL.dim : COL.text));
+    notes.forEach((n, i) => UI.text(ctx, n, SCREEN_W / 2, 188 + i * 12, 8, i < 3 ? COL.dim : COL.text));
     if (UI.blink(true)) UI.text(ctx, 'PRESS FIRE', SCREEN_W / 2, 266, 8, COL.title);
   }
 }
@@ -369,6 +373,8 @@ class StageScreen {
     this.t = 0;
   }
 
+  enter() { Music.play(this.season.id); }
+
   update(dt) {
     this.t += dt;
     let fire = false;
@@ -418,8 +424,8 @@ class RaceScreen {
     this.ambience = null;
   }
 
-  enter() { this.startSound(); }
-  leave() { this.stopSound(); }
+  enter() { this.startSound(); Music.play(this.race.season.id); Music.level(0.7); }
+  leave() { this.stopSound(); Music.pause(false); Music.level(1); }
 
   startSound() {
     const vol = this.solo ? 1 : 0.65;
@@ -444,6 +450,7 @@ class RaceScreen {
       this.paused = true;
       this.pauseSel = 0;
       this.stopSound();
+      Music.pause(true);
       Sfx.blip();
       return;
     }
@@ -463,6 +470,7 @@ class RaceScreen {
     if (Input.pause() || m.back || (m.fire && this.pauseSel === 0)) {
       this.paused = false;
       this.startSound();
+      Music.pause(false);
       Sfx.blip();
     } else if (m.fire) {
       Sfx.select();
@@ -508,6 +516,7 @@ class ResultsScreen {
     this.humans = humans;
     champ.record(this.rows, humans);
     this.t = 0;
+    Music.stop();
     const anyQ = humans.some(h => h.alive);
     Sfx.fanfare(anyQ);
   }
@@ -572,6 +581,8 @@ class StandingsScreen {
     this.over = champ.alive().length === 0;
   }
 
+  enter() { Music.play('title'); }
+
   update(dt) {
     this.t += dt;
     if (this.t > 0.8 && Input.anyFire()) {
@@ -617,7 +628,7 @@ class EndScreen {
     this.follow = this.demo.cars[0];
   }
 
-  enter() { Sfx.fanfare(this.won); }
+  enter() { Sfx.fanfare(this.won); Music.play('title'); }
 
   update(dt) {
     this.t += dt;

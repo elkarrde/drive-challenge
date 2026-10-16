@@ -3,11 +3,6 @@
 Ideas and directions for future development. Not committed to, not prioritised —
 just captured so they aren't forgotten.
 
-## Music
-
-A synthesised chiptune soundtrack per season, in the spirit of the Amiga original's
-in-race music, with a toggle between music and engine sound.
-
 ## Course editor / RECS
 
 Lotus III's "RECS" let players generate courses from a few sliders. `Track` is already

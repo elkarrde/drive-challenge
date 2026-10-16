@@ -30,6 +30,7 @@ Classic `<script>` files (not ES modules, so `file://` works) that share top-lev
 | `js/race.js` | `Race`: grid, countdown, AI driver, collisions, checkpoint timing, results |
 | `js/render.js` | Segment-based pseudo-3D renderer (Jake Gordon style), weather, HUD; one `view` per screen half |
 | `js/audio.js` | `Sfx`: synthesised engines, tyre squeal, effects, rain |
+| `js/music.js` | `Music`: step-sequenced chiptune, one song per season plus title; `SONGS` data at the top |
 | `js/input.js` | Keyboard (`e.code`) + Gamepad API; per-player `drive()` / `menu()` |
 | `js/screens.js` | `Game` state machine and screens: title (attract race), setup, stage card, race, results, standings, end |
 | `js/main.js` | Canvas scaling, font wait, fixed 60 Hz loop |

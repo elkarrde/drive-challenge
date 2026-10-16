@@ -61,10 +61,10 @@ const CARS = [
   {
     id: 'evo',
     maker: 'MITSUBISHI',
-    model: 'LANCER EVOLUTION III',
+    model: 'LANCER EVOLUTION I',
     short: 'LANCER EVO',
-    year: 1995,
-    spec: '2.0 L TURBO I4 · 270 PS · 4WD',
+    year: 1992,
+    spec: '2.0 L TURBO I4 · 250 PS · 4WD',
     stats: { speed: 2, corner: 5, accelDry: 4, accelWet: 5 },
     paint: '#f0f0ea',
     altPaint: '#e2b912',
