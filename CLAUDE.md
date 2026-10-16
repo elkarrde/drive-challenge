@@ -15,6 +15,10 @@ constructing a `Race` and stepping `race.update(1/60, [race.aiControl(car)])` to
 human car on autopilot (see "Balance" below). When testing in a browser, disable the
 cache — stale `js/*.js` files are easy to mistake for bugs.
 
+Asset links in `index.html` (and the font URL in `css/style.css`) carry `?v=<content
+hash>`. Run `./stamp.sh` after changing any file under `js/`, `css/` or `fonts/`, and
+before committing; `./stamp.sh --check` verifies. New script tags get a hash on the next run.
+
 ## Architecture
 
 Classic `<script>` files (not ES modules, so `file://` works) that share top-level

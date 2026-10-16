@@ -5,7 +5,7 @@ of three early-'90s cars and race a four-stage championship through the seasons 
 19 computer drivers, alone or with a friend on a split screen.
 
 Plain HTML5 canvas and JavaScript — no build step, no dependencies, no image or sound
-files. All art is drawn in code and all sound is synthesised with Web Audio, including a chiptune
+files (just one bundled font). All art is drawn in code and all sound is synthesised with Web Audio, including a chiptune
 soundtrack with its own tune for each season.
 
 ## Play
@@ -18,8 +18,19 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-The pixel font (Press Start 2P) is loaded from Google Fonts; offline it falls back to a
-monospace font.
+The pixel font, Press Start 2P, is bundled in `fonts/` (SIL Open Font License, see
+`fonts/OFL.txt`), so the game makes no requests to other sites.
+
+## Deploy
+
+Copy `index.html`, `css/`, `js/` and `fonts/` to any static web host. Asset links carry a
+content hash (`js/race.js?v=fe4a4b3f`) so browsers fetch only the files that changed.
+After editing anything in `js/`, `css/` or `fonts/`, refresh the hashes before deploying:
+
+```sh
+./stamp.sh          # rewrite the ?v= hashes in index.html and css/style.css
+./stamp.sh --check  # exit 1 if any hash is stale
+```
 
 ## The cars
 

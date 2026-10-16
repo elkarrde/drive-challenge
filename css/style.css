@@ -1,3 +1,10 @@
+/* Press Start 2P by Cody "CodeMan38" Boisclair, SIL Open Font License 1.1 (fonts/OFL.txt) */
+@font-face {
+  font-family: "Press Start 2P";
+  src: url("../fonts/press-start-2p.woff2?v=92844846") format("woff2");
+  font-display: swap;
+}
+
 html, body {
   margin: 0;
   height: 100%;
