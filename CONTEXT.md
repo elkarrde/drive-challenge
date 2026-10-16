@@ -1,0 +1,1 @@
+A browser racing game in the style of Lotus III: The Ultimate Challenge — a pseudo-3D four-season championship for a Lotus Esprit Turbo, Lancer Evo III and Dodge Viper RT/10, for one player or two on a split screen.
