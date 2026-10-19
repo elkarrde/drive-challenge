@@ -19,6 +19,7 @@ class Track {
     this.startZ = START_SEG * SEG_LEN;
     this.checkpointSeg = (START_SEG + Math.floor(this.segments.length / 2)) % this.segments.length;
     this.decorate();
+    if (season.mist) this.mistBanks();
   }
 
   segAt(z) {
@@ -143,6 +144,19 @@ class Track {
     const def = SPRITE_DEFS[key];
     const half = def.w / ROAD_W / 2;
     this.addSprite(segIndex, key, side * (1.2 + half + extra));
+  }
+
+  // Fog banks: seg.mist runs 0 (clear) to 1 (thick), from whole-lap sines so
+  // the banks join up across the start line. Own RNG, so the layout and
+  // scenery stay as they were.
+  mistBanks() {
+    const segs = this.segments, n = segs.length, r = U.rng(this.season.seed * 13 + 5);
+    const waves = [[5, 1], [8, 0.7], [13, 0.45], [21, 0.25]].map(([k, a]) => ({ k, a, ph: r() * Math.PI * 2 }));
+    const total = waves.reduce((s, w) => s + w.a, 0);
+    for (let i = 0; i < n; i++) {
+      const v = waves.reduce((s, w) => s + w.a * Math.sin((w.k * 2 * Math.PI * i) / n + w.ph), 0) / total;
+      segs[i].mist = U.clamp((v + 0.1) * 2.2, 0, 1);
+    }
   }
 
   decorate() {

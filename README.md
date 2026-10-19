@@ -71,12 +71,17 @@ are near-instant, automatic shifts cost a moment of drive.
 
 ## The championship
 
-| Stage | Season | Surface |
-|:--|:--|:--|
-| 1 | Autumn — forest roads | dry |
-| 2 | Winter — mountain pass | snow |
-| 3 | Spring — country lanes | rain |
-| 4 | Summer — coastal highway | dry |
+| Stage | Season | Surface | Conditions |
+|:--|:--|:--|:--|
+| 1 | Autumn — forest roads | dry | morning mist |
+| 2 | Winter — mountain pass | snow | |
+| 3 | Spring — country lanes | rain | |
+| 4 | Summer — coastal highway | dry | night |
+
+The dry stages have their own handicap: you can't see far. Autumn's mist comes in banks,
+thick enough to hide the next bend, with clearer air between them; Summer is raced at night
+by headlights, where the kerbs and the other cars' tail lights show further than the road.
+The computer drivers are a little more careful there too, and the clock allows for it.
 
 Each race is three laps from the back of a 20-car grid. A checkpoint every half lap adds
 time to the clock; run out and you're out of the race. Finish in the top 10 to score

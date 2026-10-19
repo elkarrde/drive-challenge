@@ -4,6 +4,16 @@ Versions are `major.minor.build`: major for breaking changes (something players 
 longer carries over, such as a records reset), minor for new features, build for fixes and
 balance tweaks. The version is `VERSION` in `js/data.js` and shows on the title screen.
 
+## 2.0.0 — 2026-10-19
+
+- Autumn is raced in morning mist: fog banks thick enough to hide the next bend, with
+  clearer air between them. Cars ahead fade to grey, with their tail lights showing first.
+- Summer is raced at night: stars and a moon, headlights that light the road just ahead,
+  kerbs and lane lines that catch the light further out, and the field's tail lights.
+- On both, the computer drivers aim 5% slower and the clock allows 5% more time.
+- Online records start again (records version 2): Autumn and Summer times were set in
+  daylight.
+
 ## 1.3.3 — 2026-10-19
 
 - Lotus: cornering 3½ (was 3), dry and wet. Since 1.3.0 the Viper cornered as well as the

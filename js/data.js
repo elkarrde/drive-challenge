@@ -6,7 +6,7 @@
 //   minor – new features
 //   build – fixes and balance tweaks
 // Bump it with every deploy, tag the commit vX.Y.Z and add a CHANGELOG.md entry.
-const VERSION = '1.3.3';
+const VERSION = '2.0.0';
 
 // ---------------------------------------------------------------------------
 // World / projection constants
@@ -32,7 +32,7 @@ const LAPS = 3;
 const POINTS = [15, 12, 10, 8, 6, 5, 4, 3, 2, 1];
 // Bump together with RECORDS_VERSION in api/lib.php when a physics or timing
 // change makes the online records unfair to compare with new times.
-const RECORDS_VERSION = 1;
+const RECORDS_VERSION = 2;
 
 // ---------------------------------------------------------------------------
 // Road surfaces. "wet" decides which acceleration rating a car uses.
@@ -109,20 +109,27 @@ const CAR_BY_ID = Object.fromEntries(CARS.map(c => [c.id, c]));
 
 // ---------------------------------------------------------------------------
 // Seasons / stages, raced in this order.
+//   fog    – distance haze (0 = none)
+//   mist   – patchy fog banks along the lap (track.js, render.js)
+//   night  – dark, lit by headlights; colours are as seen in the headlights
+//   sight  – poor visibility: computer drivers aim this much slower, and the
+//            time allowance is built around the same reduced pace
 // ---------------------------------------------------------------------------
 const SEASONS = [
   {
     id: 'autumn',
     name: 'AUTUMN',
-    blurb: 'FOREST ROADS · CLEAR',
+    blurb: 'FOREST ROADS · MORNING MIST',
     surface: 'dry',
     seed: 1990,
     lapSegments: 2100,
     curvy: 0.55, hilly: 0.65, straights: 0.3,
     fog: 0.6,
+    mist: true,
+    sight: 0.95,
     weather: 'leaves',
     colors: {
-      skyTop: '#5f86bd', skyBottom: '#f1c9a2', fog: '#d8b896',
+      skyTop: '#8a9cb4', skyBottom: '#efe2d0', fog: '#e2dbcf',
       grass: ['#a5802c', '#977526'], road: ['#6e6966', '#67625f'],
       rumble: ['#ececec', '#c8102e'], lane: '#e6e1d2',
       far: '#7f7b9b', farCap: null, near: '#8a5b2c', nearTop: '#b5652b',
@@ -171,19 +178,21 @@ const SEASONS = [
   {
     id: 'summer',
     name: 'SUMMER',
-    blurb: 'COASTAL HIGHWAY · HOT',
+    blurb: 'COASTAL HIGHWAY · NIGHT',
     surface: 'dry',
     seed: 1994,
     lapSegments: 2400,
     curvy: 0.35, hilly: 0.45, straights: 0.55,
     fog: 0,
-    weather: 'heat',
+    night: true,
+    sight: 0.95,
+    weather: 'clear',
     colors: {
-      skyTop: '#1e66d0', skyBottom: '#bfe2ff', fog: '#cde6fb',
-      grass: ['#86b83c', '#7aab35'], road: ['#7b7b7b', '#747474'],
+      skyTop: '#02040d', skyBottom: '#141c36', fog: '#03050b',
+      grass: ['#6f9a34', '#648d2e'], road: ['#727272', '#6b6b6b'],
       rumble: ['#ffffff', '#d81010'], lane: '#f0f0f0',
-      far: '#8fa7c6', farCap: null, near: '#6f9a3c', nearTop: '#8bb44a',
-      sun: '#fffbe0',
+      far: '#141b30', farCap: null, near: '#0a120d', nearTop: '#111c15',
+      sun: null, moon: '#e6ebf5',
     },
     scenery: [['tree_summer', 3], ['cypress', 3], ['sunflowers', 3], ['haybale', 1], ['rock', 1]],
   },

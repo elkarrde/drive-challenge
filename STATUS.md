@@ -5,7 +5,7 @@
 | Field | Value |
 |:--|:--|
 | Phase | building |
-| Version | v1.3.3 |
+| Version | v2.0.0 |
 | Build | n/a |
 | Tests | none |
 | Deployed | https://iso3200.net/drive-challenge/ (FTPS via rclone `ftp_iso3200.net`, 2026-10-19; records API since 2026-10-19) |
@@ -29,6 +29,9 @@ or snow (11th–15th) to 5th–9th; the dry stages are unchanged. Re-tested by h
 That left the Viper cornering as well as the Lotus in the wet, so the Lotus's cornering went
 from 3 to 3½ (1.3.3). On autopilot it now beats the Viper by about 4 s in rain and snow and
 matches it on Autumn; the Viper is still quicker on Summer.
+2.0.0 adds morning mist to Autumn and night to Summer (visibility only; the computer
+drivers and the clock allow 5% for it) and starts the online records again. On autopilot
+nobody runs out of time and the 85%-skill finishes are as before; needs hand play-testing.
 MIT licensed.
 
 Players can be renamed on the car-select screen. Each profile is a UUID plus a name, kept in

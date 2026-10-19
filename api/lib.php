@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 // Bump together with RECORDS_VERSION in js/data.js when a physics or timing
 // change makes old times unfair; older tables stay in the file but are hidden.
-const RECORDS_VERSION = 1;
+const RECORDS_VERSION = 2;
 
 const SEASONS = ['autumn', 'winter', 'spring', 'summer'];
 const CARS = ['lotus', 'evo', 'viper'];

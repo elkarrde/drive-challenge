@@ -59,6 +59,9 @@ draws in view-local coordinates — the caller translates and clips (see `RaceSc
   cornerWet is optional and defaults to corner).
   Change handling by changing `Physics.derive`, not by special-casing car ids.
 - Tracks are deterministic per season (`season.seed`); AI behaviour uses `Math.random`.
+- Visibility is per season, not random, so records stay comparable: `mist` (fog banks from
+  `seg.mist`, built in `Track.mistBanks`), `night` (headlights; `NIGHT` in `render.js`) and
+  `sight`, which slows the computer drivers and the time allowance to match.
 - Keys are physical codes; never bind Ctrl (Ctrl+W closes the tab).
 - Championship points are keyed by id (profile UUID for humans, `ai-<n>` for the roster),
   never by name. Names are display labels only.

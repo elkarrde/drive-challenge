@@ -312,6 +312,15 @@ const CAR_ART = {
   viper: { px: [100, 48] },
 };
 
+// Rear light boxes [x, y, w, h] for a sprite of width w; also drawn on their
+// own at night (Sprites.carLights), on top of the darkened car.
+const CAR_LIGHTS = {
+  lotus: w => [[8, 25, 22, 6], [w - 30, 25, 22, 6]],
+  evo: w => [[4, 32, 24, 6], [w - 28, 32, 24, 6]],
+  viper: w => [[6, 27, 26, 4], [w - 32, 27, 26, 4]],
+};
+const OVAL_LIGHTS = { viper: true };
+
 const CarPainters = {
   lotus(c, w, h, paint, pose, brake) {
     const dark = U.shade(paint, -0.35), light = U.shade(paint, 0.3), p = pose * 3;
@@ -325,7 +334,7 @@ const CarPainters = {
     Px.rect(c, 33 + p, 7, w - 66, 1, '#5a7088');
     Px.rect(c, 8 + p * 0.5, 17, w - 16, 3, dark);             // rear spoiler
     Px.rect(c, 8 + p * 0.5, 17, w - 16, 1, light);
-    paintLights(c, [[8, 25, 22, 6], [w - 30, 25, 22, 6]], brake);
+    paintLights(c, CAR_LIGHTS.lotus(w), brake);
     Px.rect(c, 10, 38, w - 20, 6, '#161616');                 // diffuser
     Px.rect(c, w / 2 - 8, 32, 16, 5, '#f0e8a0');               // plate
     Px.rect(c, w / 2 - 14, 41, 4, 3, '#555');                 // twin pipes
@@ -346,7 +355,7 @@ const CarPainters = {
     Px.rect(c, 3 + p * 0.4, 15, w - 6, 4, paint);             // big rear wing
     Px.rect(c, 3 + p * 0.4, 18, w - 6, 1, dark);
     Px.rect(c, 3 + p * 0.4, 15, w - 6, 1, light);
-    paintLights(c, [[4, 32, 24, 6], [w - 28, 32, 24, 6]], brake);
+    paintLights(c, CAR_LIGHTS.evo(w), brake);
     Px.rect(c, 4, 32, 6, 6, '#e89020');                       // amber inners
     Px.rect(c, w - 10, 32, 6, 6, '#e89020');
     Px.rect(c, w / 2 - 8, 39, 16, 5, '#f0f0f0');               // plate
@@ -377,7 +386,7 @@ const CarPainters = {
     Px.ellipse(c, 16, 21, 9, 2, light);
     Px.ellipse(c, w - 16, 21, 9, 2, light);
     Px.rect(c, 1, 36, w - 2, 6, dark);
-    paintLights(c, [[6, 27, 26, 4], [w - 32, 27, 26, 4]], brake, true);
+    paintLights(c, CAR_LIGHTS.viper(w), brake, true);
     Px.rect(c, w / 2 - 8, 30, 16, 5, '#f0e8a0');               // plate
     Px.rect(c, 10, 38, w - 20, 5, '#141414');                  // diffuser
   },
@@ -433,6 +442,38 @@ const Sprites = {
       [c, ctx] = U.canvas(w, h);
       CarPainters[def.id](ctx, w, h, paint, pose, brake);
       this.cars.set(key, c);
+    }
+    return c;
+  },
+
+  // Just the rear lights of a car, the size of its sprite.
+  carLights(def, brake) {
+    const key = 'lights' + def.id + (brake ? 'b' : '');
+    let c = this.cars.get(key);
+    if (!c) {
+      const [w, h] = CAR_ART[def.id].px;
+      let ctx;
+      [c, ctx] = U.canvas(w, h);
+      paintLights(ctx, CAR_LIGHTS[def.id](w), brake, OVAL_LIGHTS[def.id]);
+      this.cars.set(key, c);
+    }
+    return c;
+  },
+
+  // A sprite's silhouette in one colour, for darkening it at night.
+  tints: new WeakMap(),
+  tint(img, color) {
+    let byColor = this.tints.get(img);
+    if (!byColor) this.tints.set(img, byColor = new Map());
+    let c = byColor.get(color);
+    if (!c) {
+      let ctx;
+      [c, ctx] = U.canvas(img.width, img.height);
+      ctx.drawImage(img, 0, 0);
+      ctx.globalCompositeOperation = 'source-in';
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, img.width, img.height);
+      byColor.set(color, c);
     }
     return c;
   },
@@ -502,8 +543,8 @@ const Backgrounds = {
     const count = overcast ? 26 : season.id === 'summer' ? 6 : 12;
     for (let i = 0; i < count; i++) {
       const cx = r() * W, cy = 8 + r() * (cloudH - 26), size = 6 + r() * (overcast ? 14 : 9);
-      const base = overcast ? (season.id === 'winter' ? '#c8d2dc' : '#7e8892') : '#ffffff';
-      const shadow = overcast ? U.shade(base, -0.15) : '#dfe8f2';
+      const base = season.night ? '#1b2238' : overcast ? (season.id === 'winter' ? '#c8d2dc' : '#7e8892') : '#ffffff';
+      const shadow = season.night ? '#141a2c' : overcast ? U.shade(base, -0.15) : '#dfe8f2';
       for (let k = 0; k < 5; k++) {
         const bx = cx + (k - 2) * size * 0.7, by = cy + (k % 2) * 2;
         for (const dx of [-W, 0, W]) {
@@ -513,6 +554,10 @@ const Backgrounds = {
       }
     }
 
-    return { far, near, clouds, W };
+    // Stars (night): x across the tile, y as a fraction of the sky's height.
+    const stars = [];
+    if (season.night) for (let i = 0; i < 110; i++) stars.push({ x: r() * W, y: r() * r(), bright: r() < 0.25 });
+
+    return { far, near, clouds, stars, W };
   },
 };
