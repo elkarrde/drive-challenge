@@ -6,7 +6,7 @@
 //   minor – new features
 //   build – fixes and balance tweaks
 // Bump it with every deploy, tag the commit vX.Y.Z and add a CHANGELOG.md entry.
-const VERSION = '1.3.2';
+const VERSION = '1.3.3';
 
 // ---------------------------------------------------------------------------
 // World / projection constants
@@ -61,7 +61,7 @@ const CARS = [
     short: 'ESPRIT',
     year: 1990,
     spec: '2.2 L TURBO I4 · 264 HP · RWD',
-    stats: { speed: 4, corner: 3, accelDry: 4, accelWet: 3 },
+    stats: { speed: 4, corner: 3.5, accelDry: 4, accelWet: 3 },
     paint: '#c8102e',
     altPaint: '#1f4fbf',
     aiPaints: ['#c8102e', '#f2f2ee', '#1d1d22', '#1f4fbf', '#d8b21a'],

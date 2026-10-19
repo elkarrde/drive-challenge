@@ -61,7 +61,7 @@ Run as a static site (or from `file://`), the game works without records.
 
 | | Top speed | Cornering (dry) | Cornering (wet / snow) | Accel (dry) | Accel (wet / snow) |
 |:--|:--:|:--:|:--:|:--:|:--:|
-| Lotus Esprit Turbo SE | 4 | 3 | 3 | 4 | 3 |
+| Lotus Esprit Turbo SE | 4 | 3½ | 3½ | 4 | 3 |
 | Mitsubishi Lancer Evolution I | 2 | 5 | 5 | 4 | 5 |
 | Dodge Viper RT/10 | 5 | 2 | 3½ | 5 | 1 |
 

@@ -4,6 +4,14 @@ Versions are `major.minor.build`: major for breaking changes (something players 
 longer carries over, such as a records reset), minor for new features, build for fixes and
 balance tweaks. The version is `VERSION` in `js/data.js` and shows on the title screen.
 
+## 1.3.3 — 2026-10-19
+
+- Lotus: cornering 3½ (was 3), dry and wet. Since 1.3.0 the Viper cornered as well as the
+  Lotus in rain and snow. On autopilot the Lotus is now about 4 s quicker than the Viper in
+  the wet and level with it on Autumn; the Viper is still quicker on Summer.
+- The records server's fastest plausible times were re-measured for the quicker Lotus.
+  Existing records stay.
+
 ## 1.3.2 — 2026-10-19
 
 - M now steps the music and N the sound effects (they were the other way round).

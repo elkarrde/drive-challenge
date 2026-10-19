@@ -20,8 +20,8 @@ const RATE_LIMIT = 60;            // submissions per address per hour
 // Anything quicker is treated as a cheat. 80% of the autopilot's best with full
 // skill (it drives cleanly but not perfectly), and above the flat-out lap time,
 // which no lap can beat.
-const MIN_LAP = ['autumn' => 36, 'winter' => 34, 'spring' => 37, 'summer' => 40];
-const MIN_RACE = ['autumn' => 114, 'winter' => 110, 'spring' => 117, 'summer' => 126];
+const MIN_LAP = ['autumn' => 35, 'winter' => 34, 'spring' => 37, 'summer' => 39];
+const MIN_RACE = ['autumn' => 113, 'winter' => 108, 'spring' => 117, 'summer' => 126];
 const MAX_TIME = 1800;
 
 // Computer drivers' names can't be used by players (as in js/data.js).
