@@ -55,7 +55,8 @@ draws in view-local coordinates — the caller translates and clips (see `RaceSc
 
 ## Conventions
 
-- The three cars differ **only** through `stats` (speed, corner, accelDry, accelWet).
+- The three cars differ **only** through `stats` (speed, corner, cornerWet, accelDry, accelWet;
+  cornerWet is optional and defaults to corner).
   Change handling by changing `Physics.derive`, not by special-casing car ids.
 - Tracks are deterministic per season (`season.seed`); AI behaviour uses `Math.random`.
 - Keys are physical codes; never bind Ctrl (Ctrl+W closes the tab).
@@ -72,6 +73,13 @@ Autopilot finishing positions (human car on `aiControl`, from the back of the gr
 the quick sanity check after any physics or timing change: the Lotus should qualify on
 every stage, the Evo should struggle on dry stages and the Viper on wet ones, and nobody
 should run out of time. Time allowances come from `RACE.PACE_KMH` × `surface.pace`.
+
+## Versions
+
+`VERSION` in `js/data.js` (major.minor.build; the title screen shows it). Major: something
+players had no longer carries over (e.g. a `RECORDS_VERSION` bump). Minor: new features.
+Build: fixes and balance tweaks. Bump it with every deploy, add a `CHANGELOG.md` entry, and
+tag the commit `vX.Y.Z`.
 
 ## Housekeeping
 

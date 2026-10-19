@@ -255,7 +255,7 @@ class Race {
     // Steer to hold the chosen lane against the bend's outward push.
     const seg = segs[base % n];
     const vRel = car.speed / PHYS.REF_SPEED;
-    const cent = (seg.curve / CURVE_MAX) * vRel * vRel * PHYS.CENT * car.ph.drift / this.surf.grip;
+    const cent = (seg.curve / CURVE_MAX) * vRel * vRel * PHYS.CENT * Physics.drift(car.ph, this.surf) / this.surf.grip;
     const authority = PHYS.STEER * U.clamp(car.speed / (60 * KMH), 0.05, 1);
     const steer = U.clamp(((car.laneX - car.x) * 2.5 + cent) / authority, -1, 1);
 

@@ -91,8 +91,12 @@ const UI = {
     UI.text(ctx, label, x, y, 8, COL.dim, 'left');
     const bx = x + w - 5 * 10;
     for (let i = 0; i < 5; i++) {
-      ctx.fillStyle = i < value ? color : 'rgba(255,255,255,0.15)';
+      // A half rating fills half a block.
+      const fill = U.clamp(value - i, 0, 1);
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
       ctx.fillRect(bx + i * 10, y, 8, 7);
+      ctx.fillStyle = color;
+      if (fill > 0) ctx.fillRect(bx + i * 10, y, Math.round(8 * fill), 7);
     }
   },
 
@@ -179,6 +183,7 @@ class TitleScreen {
     UI.text(ctx, this.demo.season.name + ' · ' + this.follow.name + ' · ' + this.follow.def.short, SCREEN_W / 2, 214, 8, COL.dim);
     UI.text(ctx, '3 CARS · 4 SEASONS · 20 DRIVERS', SCREEN_W / 2, 262, 8, COL.text);
     UI.text(ctx, 'M: SOUND   N: MUSIC   ESC: BACK / PAUSE', SCREEN_W / 2, 278, 8, COL.dim);
+    UI.text(ctx, 'V' + VERSION, 4, SCREEN_H - 10, 8, COL.dim, 'left');
   }
 
   drawControls(ctx) {
@@ -344,10 +349,11 @@ class SetupScreen {
     const bw = wide ? 300 : 196, bx = cx - bw / 2;
     let y = wide ? 200 : 174;
     const st = def.stats;
-    const bars = [['TOP SPEED', st.speed], ['CORNERING', st.corner], ['ACCEL DRY', st.accelDry], ['ACCEL WET', st.accelWet]];
+    const bars = [['TOP SPEED', st.speed], ['CORNER DRY', st.corner], ['CORNER WET', st.cornerWet ?? st.corner],
+      ['ACCEL DRY', st.accelDry], ['ACCEL WET', st.accelWet]];
     for (const [label, v] of bars) {
-      UI.bar(ctx, label, v, bx, y, bw, label === 'ACCEL WET' ? '#60b0ff' : '#ff9030');
-      y += 11;
+      UI.bar(ctx, label, v, bx, y, bw, label.endsWith('WET') ? '#60b0ff' : '#ff9030');
+      y += 10;
     }
     y += 6;
     const gear = (s.manual ? 'MANUAL' : 'AUTOMATIC');

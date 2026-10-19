@@ -59,11 +59,11 @@ Run as a static site (or from `file://`), the game works without records.
 
 ## The cars
 
-| | Top speed | Cornering | Accel (dry) | Accel (wet / snow) |
-|:--|:--:|:--:|:--:|:--:|
-| Lotus Esprit Turbo SE | 4 | 3 | 4 | 3 |
-| Mitsubishi Lancer Evolution I | 2 | 5 | 4 | 5 |
-| Dodge Viper RT/10 | 5 | 2 | 5 | 1 |
+| | Top speed | Cornering (dry) | Cornering (wet / snow) | Accel (dry) | Accel (wet / snow) |
+|:--|:--:|:--:|:--:|:--:|:--:|
+| Lotus Esprit Turbo SE | 4 | 3 | 3 | 4 | 3 |
+| Mitsubishi Lancer Evolution I | 2 | 5 | 5 | 4 | 5 |
+| Dodge Viper RT/10 | 5 | 2 | 3½ | 5 | 1 |
 
 Cornering decides how much speed a car loses — and how far it drifts wide — whenever it
 isn't driving straight. Each car can run an automatic or a manual gearbox; manual shifts

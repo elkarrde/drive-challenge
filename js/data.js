@@ -1,5 +1,13 @@
 'use strict';
 
+// Game version, shown on the title screen. major.minor.build:
+//   major – breaking: something players had no longer carries over
+//           (e.g. a RECORDS_VERSION bump that hides the old records)
+//   minor – new features
+//   build – fixes and balance tweaks
+// Bump it with every deploy, tag the commit vX.Y.Z and add a CHANGELOG.md entry.
+const VERSION = '1.3.0';
+
 // ---------------------------------------------------------------------------
 // World / projection constants
 // ---------------------------------------------------------------------------
@@ -40,7 +48,8 @@ const SURFACES = {
 // see physics.js for how each rating maps onto the simulation.
 //   speed     – top speed
 //   corner    – how little speed is scrubbed (and how little the car drifts)
-//               while it is not driving straight
+//               while it is not driving straight, on dry tarmac
+//   cornerWet – the same on rain / snow (optional; defaults to corner)
 //   accelDry  – acceleration on dry tarmac
 //   accelWet  – acceleration on rain / snow
 // ---------------------------------------------------------------------------
@@ -84,7 +93,9 @@ const CARS = [
     short: 'VIPER',
     year: 1992,
     spec: '8.0 L V10 · 400 HP · RWD',
-    stats: { speed: 5, corner: 2, accelDry: 5, accelWet: 1 },
+    // Better grip in the wet than in the dry, so a snow or rain stage isn't
+    // lost in the first bends (it never qualified there with cornerWet 2).
+    stats: { speed: 5, corner: 2, cornerWet: 3.5, accelDry: 5, accelWet: 1 },
     paint: '#14704a',
     altPaint: '#c41020',
     aiPaints: ['#14704a', '#c41020', '#1d1d22', '#e2b912', '#2a4fd0'],

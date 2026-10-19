@@ -11,6 +11,8 @@
 //                  accelWet on rain and snow: 29..49 (24 + 5 * rating)
 //   corner 1..5  → speed scrub while turning: 1.32..0.20 (1.6 - 0.28 * rating)
 //                  outward drift in bends:     1.20..0.80 (1.3 - 0.1 * rating)
+//                  corner on dry tarmac, cornerWet on rain and snow (cornerWet
+//                  defaults to corner)
 // ---------------------------------------------------------------------------
 const PHYS = {
   REF_SPEED: 280 * KMH,  // cornering forces are expressed relative to this speed
@@ -35,6 +37,8 @@ const Physics = {
       accelWet: (24 + 5 * s.accelWet) * KMH,
       scrub: 1.6 - 0.28 * s.corner,
       drift: 1.3 - 0.1 * s.corner,
+      scrubWet: 1.6 - 0.28 * (s.cornerWet ?? s.corner),
+      driftWet: 1.3 - 0.1 * (s.cornerWet ?? s.corner),
       ratios: def.ratios,
       gearMul: def.ratios.map(r => Math.pow(1 / r, 0.3)),
     };
@@ -49,9 +53,13 @@ const Physics = {
   // using `margin` of its steering authority. Used by the AI to pick a braking point.
   cornerSpeed(ph, surf, curveN, margin) {
     if (curveN < 0.01) return Infinity;
-    const v2 = (margin * PHYS.STEER) / (PHYS.CENT * ph.drift / surf.grip * curveN);
+    const v2 = (margin * PHYS.STEER) / (PHYS.CENT * Physics.drift(ph, surf) / surf.grip * curveN);
     return PHYS.REF_SPEED * Math.sqrt(v2);
   },
+
+  // Cornering figures for the surface: the wet rating applies on rain and snow.
+  scrub: (ph, surf) => (surf.wet ? ph.scrubWet : ph.scrub),
+  drift: (ph, surf) => (surf.wet ? ph.driftWet : ph.drift),
 
   createCar(def, opts) {
     return {
@@ -119,11 +127,11 @@ const Physics = {
     const vRel = car.speed / PHYS.REF_SPEED;
     const curveN = seg.curve / CURVE_MAX;
     const load = 0.6 * Math.abs(curveN) + 0.4 * Math.abs(ctl.steer);
-    const scrub = PHYS.SCRUB * ph.scrub * load * vRel / Math.sqrt(surf.grip);
+    const scrub = PHYS.SCRUB * Physics.scrub(ph, surf) * load * vRel / Math.sqrt(surf.grip);
     car.speed -= car.speed * Math.min(0.9, scrub * dt);
 
     const lat = ctl.steer * PHYS.STEER * U.clamp(car.speed / (60 * KMH), 0, 1);
-    const cent = curveN * vRel * vRel * PHYS.CENT * ph.drift / surf.grip;
+    const cent = curveN * vRel * vRel * PHYS.CENT * Physics.drift(ph, surf) / surf.grip;
     car.x += (lat - cent) * dt;
     car.skid = U.clamp(Math.max(Math.abs(cent) - 0.8, Math.abs(ctl.steer) * vRel - 0.55) * 1.6, 0, 1);
 

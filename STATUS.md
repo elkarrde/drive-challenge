@@ -5,7 +5,7 @@
 | Field | Value |
 |:--|:--|
 | Phase | building |
-| Version | untagged |
+| Version | v1.3.0 |
 | Build | n/a |
 | Tests | none |
 | Deployed | https://iso3200.net/drive-challenge/ (FTPS via rclone `ftp_iso3200.net`, 2026-10-19; records API since 2026-10-19) |
@@ -22,7 +22,10 @@ Online records (personal bests, top 10 per table) are kept by `api/records.php` 
 on the server, with an admin page for deletes. Tested against PHP 8.3 in Docker: the API
 cases (validation, personal bests, renames, rate limit) and a full championship in the
 browser that records every table. The live server needs `pdo_sqlite` enabled in cPanel.
-Hand play-tested the Lotus and the Lancer Evo: both well balanced. The Viper is still to do.
+Hand play-tested the Lotus and the Lancer Evo: both well balanced. The Viper was
+hopeless in the wet (dropped to 12th+ in the first bends), so cars now have an optional wet
+cornering rating and the Viper's is 3½. On autopilot it went from never qualifying in rain
+or snow (11th–15th) to 5th–9th; the dry stages are unchanged. Needs a hand re-test.
 MIT licensed.
 
 Players can be renamed on the car-select screen. Each profile is a UUID plus a name, kept in
