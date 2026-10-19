@@ -6,7 +6,7 @@
 //   minor – new features
 //   build – fixes and balance tweaks
 // Bump it with every deploy, tag the commit vX.Y.Z and add a CHANGELOG.md entry.
-const VERSION = '2.0.0';
+const VERSION = '2.0.1';
 
 // ---------------------------------------------------------------------------
 // World / projection constants
@@ -111,7 +111,9 @@ const CAR_BY_ID = Object.fromEntries(CARS.map(c => [c.id, c]));
 // Seasons / stages, raced in this order.
 //   fog    – distance haze (0 = none)
 //   mist   – patchy fog banks along the lap (track.js, render.js)
-//   night  – dark, lit by headlights; colours are as seen in the headlights
+//   night  – dark, lit by headlights; `colors` are the daylight (and headlight)
+//            colours, `colors.night` the dark sky and hills, `ink` the darkness
+//   dawn   – night on lap 1, getting light through lap 2, daylight on lap 3
 //   sight  – poor visibility: computer drivers aim this much slower, and the
 //            time allowance is built around the same reduced pace
 // ---------------------------------------------------------------------------
@@ -178,21 +180,27 @@ const SEASONS = [
   {
     id: 'summer',
     name: 'SUMMER',
-    blurb: 'COASTAL HIGHWAY · NIGHT',
+    blurb: 'COASTAL HIGHWAY · NIGHT TO DAY',
     surface: 'dry',
     seed: 1994,
     lapSegments: 2400,
     curvy: 0.35, hilly: 0.45, straights: 0.55,
     fog: 0,
     night: true,
+    dawn: true,
     sight: 0.95,
     weather: 'clear',
     colors: {
-      skyTop: '#02040d', skyBottom: '#141c36', fog: '#03050b',
-      grass: ['#6f9a34', '#648d2e'], road: ['#727272', '#6b6b6b'],
+      skyTop: '#1e66d0', skyBottom: '#bfe2ff', fog: '#cde6fb',
+      grass: ['#86b83c', '#7aab35'], road: ['#7b7b7b', '#747474'],
       rumble: ['#ffffff', '#d81010'], lane: '#f0f0f0',
-      far: '#141b30', farCap: null, near: '#0a120d', nearTop: '#111c15',
-      sun: null, moon: '#e6ebf5',
+      far: '#8fa7c6', farCap: null, near: '#6f9a3c', nearTop: '#8bb44a',
+      sun: '#fffbe0',
+      night: {
+        skyTop: '#02040d', skyBottom: '#141c36', ink: '#03050b',
+        far: '#141b30', near: '#0a120d', nearTop: '#111c15', moon: '#e6ebf5',
+      },
+      dawn: { skyTop: '#3d4f86', skyBottom: '#f2a46e', sun: '#ffd28a' },
     },
     scenery: [['tree_summer', 3], ['cypress', 3], ['sunflowers', 3], ['haybale', 1], ['rock', 1]],
   },

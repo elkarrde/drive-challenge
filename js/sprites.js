@@ -489,11 +489,13 @@ const Sprites = {
 const Backgrounds = {
   cache: new Map(),
 
-  get(season) {
-    let bg = this.cache.get(season.id);
+  // `night` builds the dark version (same shapes, so the two can be crossfaded).
+  get(season, night) {
+    const key = season.id + (night ? '-night' : '');
+    let bg = this.cache.get(key);
     if (!bg) {
-      bg = this.build(season);
-      this.cache.set(season.id, bg);
+      bg = this.build(season, night);
+      this.cache.set(key, bg);
     }
     return bg;
   },
@@ -503,8 +505,8 @@ const Backgrounds = {
     return x => parts.reduce((s, p) => s + p.a * Math.sin((p.k * 2 * Math.PI * x) / w + p.ph), 0);
   },
 
-  build(season) {
-    const C = season.colors, r = U.rng(season.seed + 99);
+  build(season, night) {
+    const C = night ? { ...season.colors, ...season.colors.night } : season.colors, r = U.rng(season.seed + 99);
     const W = SCREEN_W * 2;
 
     // Far mountains.
@@ -543,8 +545,8 @@ const Backgrounds = {
     const count = overcast ? 26 : season.id === 'summer' ? 6 : 12;
     for (let i = 0; i < count; i++) {
       const cx = r() * W, cy = 8 + r() * (cloudH - 26), size = 6 + r() * (overcast ? 14 : 9);
-      const base = season.night ? '#1b2238' : overcast ? (season.id === 'winter' ? '#c8d2dc' : '#7e8892') : '#ffffff';
-      const shadow = season.night ? '#141a2c' : overcast ? U.shade(base, -0.15) : '#dfe8f2';
+      const base = night ? '#1b2238' : overcast ? (season.id === 'winter' ? '#c8d2dc' : '#7e8892') : '#ffffff';
+      const shadow = night ? '#141a2c' : overcast ? U.shade(base, -0.15) : '#dfe8f2';
       for (let k = 0; k < 5; k++) {
         const bx = cx + (k - 2) * size * 0.7, by = cy + (k % 2) * 2;
         for (const dx of [-W, 0, W]) {
@@ -556,7 +558,7 @@ const Backgrounds = {
 
     // Stars (night): x across the tile, y as a fraction of the sky's height.
     const stars = [];
-    if (season.night) for (let i = 0; i < 110; i++) stars.push({ x: r() * W, y: r() * r(), bright: r() < 0.25 });
+    if (night) for (let i = 0; i < 110; i++) stars.push({ x: r() * W, y: r() * r(), bright: r() < 0.25 });
 
     return { far, near, clouds, stars, W };
   },

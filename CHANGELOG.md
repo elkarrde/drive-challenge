@@ -4,6 +4,14 @@ Versions are `major.minor.build`: major for breaking changes (something players 
 longer carries over, such as a records reset), minor for new features, build for fixes and
 balance tweaks. The version is `VERSION` in `js/data.js` and shows on the title screen.
 
+## 2.0.1 — 2026-10-20
+
+- Summer: the night now ends. The first lap is at night; through the second lap the sky
+  turns pink and orange, the sun rises over the hills and the stars fade; the last lap is
+  in daylight. Each driver's sky follows their own lap.
+- The computer drivers' and the clock's 5% allowance on Summer now fades out with the dark.
+- The car-select screen's hills are daylight again (2.0.0 drew them dark).
+
 ## 2.0.0 — 2026-10-19
 
 - Autumn is raced in morning mist: fog banks thick enough to hide the next bend, with

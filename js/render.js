@@ -54,11 +54,14 @@ const Render = {
       xP = xx + ddx * ((car.z % SEG_LEN) / SEG_LEN);
     }
 
+    // How dark it is for this view's driver (0 = day); drawing reads view.dark.
+    const season = race.season, density = season.fog;
+    const dark = view.dark = race.darkness(car), ink = season.night ? C.night.ink : null;
     this.background(ctx, view, race, car);
 
     // Ground below the eye line, in the far (fogged) grass colour.
-    const season = race.season, density = season.fog;
-    ctx.fillStyle = season.night ? C.fog : U.mix(C.grass[1], C.fog, density > 0 ? 0.85 : 0.3);
+    const ground = U.mix(C.grass[1], C.fog, density > 0 ? 0.85 : 0.3);
+    ctx.fillStyle = dark > 0 ? U.mix(ground, ink, dark) : ground;
     ctx.fillRect(0, Math.round(horizon), w, h - Math.round(horizon));
 
     // Project every segment, near to far, tracking the clip line. P.fog is how
@@ -78,9 +81,13 @@ const Render = {
         P.fog *= mist;
         mist *= Math.exp(-(MIST.CLEAR + MIST.BANK * seg.mist));
       }
-      if (season.night) {
-        P.fog = this.beam(k, NIGHT.BEAM);
-        P.marks = this.beam(k, NIGHT.MARKS);
+      if (dark > 0) {
+        // How lit each part is: 1 in daylight or right in the headlights.
+        const b = this.beam(k, NIGHT.BEAM), bm = this.beam(k, NIGHT.MARKS);
+        P.lit = 1 - dark * (1 - b);
+        P.litMarks = 1 - dark * (1 - bm);
+        P.litVerge = 1 - dark * (1 - b * NIGHT.VERGE);
+        P.litSide = 1 - dark * (1 - b * NIGHT.SIDE);
       }
       if (P.behind) { x += dx; dx += seg.curve; continue; }
       const s1 = CAM_DEPTH / cz1, s2 = CAM_DEPTH / cz2;
@@ -110,13 +117,13 @@ const Render = {
       const P = view.proj[k];
       if (P.behind) continue;
       const seg = P.seg;
-      const fade = season.night ? 1 : P.fog < 1 ? U.clamp(P.fog * 1.3, 0, 1) : 1;
+      const fade = P.fog < 1 ? U.clamp(P.fog * 1.3, 0, 1) : 1;
       ctx.globalAlpha = fade;
       for (const s of seg.sprites) {
         const img = Sprites.scenery[s.key];
         const sx = P.x1 + P.s1 * s.offset * ROAD_W * S;
         this.sprite(ctx, view, img, s.def.w, s.def.h, P.s1, sx, P.y1, P.clip);
-        if (season.night) this.darken(ctx, view, img, s.def.w, s.def.h, P.s1, sx, P.y1, P.clip, 1 - P.fog * NIGHT.SIDE, C.fog);
+        if (dark > 0) this.darken(ctx, view, img, s.def.w, s.def.h, P.s1, sx, P.y1, P.clip, 1 - P.litSide, ink);
       }
       if (seg.cars.length) {
         const cars = seg.cars.length > 1 ? seg.cars.slice().sort((a, b) => b.z - a.z) : seg.cars;
@@ -127,7 +134,7 @@ const Render = {
           const sx = U.lerp(P.x1, P.x2, pct) + sc * other.x * ROAD_W * S;
           const sy = U.lerp(P.y1, P.y2, pct);
           ctx.globalAlpha = fade;
-          this.car(ctx, view, race, other, sc, sx, sy, P.clip, time, P.fog);
+          this.car(ctx, view, race, other, sc, sx, sy, P.clip, time, dark > 0 ? P.lit : P.fog);
         }
       }
       ctx.globalAlpha = 1;
@@ -150,45 +157,65 @@ const Render = {
     ctx.globalAlpha = a0;
   },
 
+  // Night → dawn → day colour for daylight t (0..1).
+  dawnMix(night, dawn, day, t) {
+    return t < 0.5 ? U.mix(night, dawn, t * 2) : U.mix(dawn, day, (t - 0.5) * 2);
+  },
+
   background(ctx, view, race, car) {
     const season = race.season, C = season.colors, bg = Backgrounds.get(season);
     const { w, horizon, split } = view;
     const hz = Math.round(horizon);
+    const dark = view.dark || 0, day = 1 - dark, N = C.night;
     const g = ctx.createLinearGradient(0, 0, 0, hz);
-    g.addColorStop(0, C.skyTop);
-    g.addColorStop(1, C.skyBottom);
+    g.addColorStop(0, dark > 0 ? this.dawnMix(N.skyTop, C.dawn.skyTop, C.skyTop, day) : C.skyTop);
+    g.addColorStop(1, dark > 0 ? this.dawnMix(N.skyBottom, C.dawn.skyBottom, C.skyBottom, day) : C.skyBottom);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, hz + 1);
 
-    for (const st of bg.stars) {
-      const sx = U.mod(st.x - car.skyOffset * 0.25 * bg.W, bg.W);
-      if (sx < w) Px.rect(ctx, Math.floor(sx), Math.floor(st.y * hz * 0.9), 1, 1, st.bright ? '#ffffff' : '#7d88a8');
-    }
-    if (C.moon) {
+    const nightBg = dark > 0 ? Backgrounds.get(season, true) : null;
+    if (nightBg) {
+      ctx.globalAlpha = dark;
+      for (const st of nightBg.stars) {
+        const sx = U.mod(st.x - car.skyOffset * 0.25 * bg.W, bg.W);
+        if (sx < w) Px.rect(ctx, Math.floor(sx), Math.floor(st.y * hz * 0.9), 1, 1, st.bright ? '#ffffff' : '#7d88a8');
+      }
       const sx = U.mod(w * 0.25 - car.skyOffset * 0.25 * bg.W, bg.W);
       if (sx < w + 20) {
-        ctx.globalAlpha = 0.12;
-        Px.disc(ctx, sx, hz * 0.28, split ? 10 : 15, C.moon);
-        ctx.globalAlpha = 1;
-        Px.disc(ctx, sx, hz * 0.28, split ? 5 : 7, C.moon);
-        Px.disc(ctx, sx + (split ? 1 : 2), hz * 0.28 - 1, split ? 1 : 2, U.shade(C.moon, -0.12));
+        ctx.globalAlpha = 0.12 * dark;
+        Px.disc(ctx, sx, hz * 0.28, split ? 10 : 15, N.moon);
+        ctx.globalAlpha = dark;
+        Px.disc(ctx, sx, hz * 0.28, split ? 5 : 7, N.moon);
+        Px.disc(ctx, sx + (split ? 1 : 2), hz * 0.28 - 1, split ? 1 : 2, U.shade(N.moon, -0.12));
       }
+      ctx.globalAlpha = 1;
     }
 
-    if (C.sun) {
-      const sy = race.season.id === 'summer' ? hz * 0.3 : hz * 0.62;
+    if (C.sun && day > 0) {
+      // At dawn the sun rises from behind the hills, orange at first.
+      const high = season.id === 'summer' ? hz * 0.3 : hz * 0.62;
+      const sy = dark > 0 ? U.lerp(hz * 0.95, high, day) : high;
+      const sun = dark > 0 ? U.mix(C.dawn.sun, C.sun, day) : C.sun;
       const sx = U.mod(w * 0.7 - car.skyOffset * 0.25 * bg.W, bg.W);
       if (sx < w + 20) {
-        ctx.globalAlpha = 0.35;
-        Px.disc(ctx, sx, sy, split ? 11 : 16, C.sun);
+        ctx.globalAlpha = 0.35 * day;
+        Px.disc(ctx, sx, sy, split ? 11 : 16, sun);
+        ctx.globalAlpha = day;
+        Px.disc(ctx, sx, sy, split ? 7 : 10, sun);
         ctx.globalAlpha = 1;
-        Px.disc(ctx, sx, sy, split ? 7 : 10, C.sun);
       }
     }
+    // Daylight layers, with the night ones faded over them while it is dark.
     const k = split ? 0.6 : 1;
-    this.layer(ctx, bg.clouds, w, car.skyOffset * 0.25, hz - bg.clouds.height * k - (split ? 4 : 30), k);
-    this.layer(ctx, bg.far, w, car.skyOffset * 0.5, hz - bg.far.height * k + 2, k);
-    this.layer(ctx, bg.near, w, car.skyOffset * 1.0, hz - bg.near.height * k + 2, k);
+    const layers = [['clouds', 0.25, hz - bg.clouds.height * k - (split ? 4 : 30)], ['far', 0.5, hz - bg.far.height * k + 2], ['near', 1, hz - bg.near.height * k + 2]];
+    for (const [name, speed, y] of layers) {
+      this.layer(ctx, bg[name], w, car.skyOffset * speed, y, k);
+      if (nightBg) {
+        ctx.globalAlpha = dark;
+        this.layer(ctx, nightBg[name], w, car.skyOffset * speed, y, k);
+        ctx.globalAlpha = 1;
+      }
+    }
 
     // Mist hides the hills, all the more inside a bank.
     if (season.mist) {
@@ -211,14 +238,14 @@ const Render = {
     const seg = P.seg, light = seg.light;
     const { x1, y1, w1, x2, y2, w2 } = P;
     const w = view.w;
-    // At night each part is drawn lit, then darkened by how far the light reaches it.
-    const night = season.night;
-    const dim = night ? 1 - P.fog : 0, dimMarks = night ? 1 - P.marks : 0;
+    // In the dark each part is drawn lit, then darkened by how far the light reaches it.
+    const night = view.dark > 0, ink = night ? C.night.ink : null;
+    const dim = night ? 1 - P.lit : 0, dimMarks = night ? 1 - P.litMarks : 0;
     ctx.fillStyle = C.grass[light ? 0 : 1];
     ctx.fillRect(0, y2, w, y1 - y2);
     if (night) {
-      ctx.globalAlpha = 1 - P.fog * NIGHT.VERGE;
-      ctx.fillStyle = C.fog;
+      ctx.globalAlpha = 1 - P.litVerge;
+      ctx.fillStyle = ink;
       ctx.fillRect(0, y2, w, y1 - y2);
       ctx.globalAlpha = 1;
     }
@@ -229,14 +256,14 @@ const Render = {
       [x1 + w1 + r1, y1, x1 + w1, y1, x2 + w2, y2, x2 + w2 + r2, y2],
     ];
     for (const q of kerbs) this.quad(ctx, ...q, C.rumble[light ? 0 : 1]);
-    if (night) for (const q of kerbs) this.shade(ctx, q, C.fog, dimMarks);
+    if (night) for (const q of kerbs) this.shade(ctx, q, ink, dimMarks);
     const road = [x1 - w1, y1, x1 + w1, y1, x2 + w2, y2, x2 - w2, y2];
     this.quad(ctx, ...road, C.road[light ? 0 : 1]);
-    if (night) this.shade(ctx, road, C.fog, dim);
+    if (night) this.shade(ctx, road, ink, dim);
 
     if (seg.index === START_SEG) {
       this.checker(ctx, P);
-      if (night) this.shade(ctx, road, C.fog, dim);
+      if (night) this.shade(ctx, road, ink, dim);
     } else if (light) {
       const l1 = w1 * 0.035, l2 = w2 * 0.035;
       for (let lane = 1; lane < LANES; lane++) {
@@ -244,7 +271,7 @@ const Render = {
         const lx1 = x1 + w1 * t, lx2 = x2 + w2 * t;
         const q = [lx1 - l1 / 2, y1, lx1 + l1 / 2, y1, lx2 + l2 / 2, y2, lx2 - l2 / 2, y2];
         this.quad(ctx, ...q, C.lane);
-        if (night) this.shade(ctx, q, C.fog, dimMarks);
+        if (night) this.shade(ctx, q, ink, dimMarks);
       }
     }
     if (season.surface === 'rain' && !light) {
@@ -253,7 +280,7 @@ const Render = {
       this.quad(ctx, x1 - w1 * 0.4, y1, x1 - w1 * 0.1, y1, x2 - w2 * 0.1, y2, x2 - w2 * 0.4, y2, '#d8e0ea');
       ctx.globalAlpha = 1;
     }
-    if (P.fog < 1 && !night) {
+    if (P.fog < 1) {
       ctx.globalAlpha = 1 - P.fog;
       ctx.fillStyle = C.fog;
       ctx.fillRect(0, y2, w, y1 - y2);
@@ -337,17 +364,17 @@ const Render = {
     if (car.offroad && car.speed > 10 * KMH) this.dust(ctx, view, race, car, scale, sx, sy, time);
     const img = Sprites.car(car.def, car.paint, this.carPose(car), car.brake > 0.1);
     this.sprite(ctx, view, img, car.def.worldW, Sprites.carWorldH(car.def), scale, sx, sy, view.h + 100);
-    this.lights(ctx, view, race, car, img, scale, sx, sy, view.h + 100, 0.55);
+    this.lights(ctx, view, race, car, img, scale, sx, sy, view.h + 100, 1 - 0.45 * (view.dark || 0));
   },
 
   // In the dark or the mist a car's rear lights show before (or instead of)
   // the car: darken it, then draw its lights on top.
   lights(ctx, view, race, car, img, scale, sx, sy, clip, vis) {
-    const season = race.season;
-    if (!season.night && !season.mist) return;
+    const season = race.season, night = view.dark > 0;
+    if (!night && !season.mist) return;
     const ww = car.def.worldW, wh = Sprites.carWorldH(car.def), a0 = ctx.globalAlpha;
-    if (season.night) this.darken(ctx, view, img, ww, wh, scale, sx, sy, clip, 1 - vis, season.colors.fog);
-    ctx.globalAlpha = season.night ? 1 : U.clamp(vis * 3, 0, 1);
+    if (night) this.darken(ctx, view, img, ww, wh, scale, sx, sy, clip, 1 - vis, season.colors.night.ink);
+    ctx.globalAlpha = night ? 1 : U.clamp(vis * 3, 0, 1);
     this.sprite(ctx, view, Sprites.carLights(car.def, car.brake > 0.1), ww, wh, scale, sx, sy, clip);
     ctx.globalAlpha = a0;
   },

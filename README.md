@@ -76,11 +76,12 @@ are near-instant, automatic shifts cost a moment of drive.
 | 1 | Autumn — forest roads | dry | morning mist |
 | 2 | Winter — mountain pass | snow | |
 | 3 | Spring — country lanes | rain | |
-| 4 | Summer — coastal highway | dry | night |
+| 4 | Summer — coastal highway | dry | night, then dawn |
 
 The dry stages have their own handicap: you can't see far. Autumn's mist comes in banks,
-thick enough to hide the next bend, with clearer air between them; Summer is raced at night
-by headlights, where the kerbs and the other cars' tail lights show further than the road.
+thick enough to hide the next bend, with clearer air between them; Summer starts at night,
+by headlights, where the kerbs and the other cars' tail lights show further than the road;
+it gets light through the second lap, and the last lap is in daylight.
 The computer drivers are a little more careful there too, and the clock allows for it.
 
 Each race is three laps from the back of a 20-car grid. A checkpoint every half lap adds

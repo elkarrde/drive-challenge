@@ -55,11 +55,15 @@ class Race {
     this.raceDist = LAPS * L;
     this.checkpoints = [];
     for (let k = 1; k <= LAPS * 2; k++) this.checkpoints.push(Math.floor(k / 2) * L + (k % 2) * this.halfLap);
-    const pace = RACE.PACE_KMH * KMH * this.surf.pace * (this.season.sight || 1);
-    this.allowance = this.checkpoints.map((p, k) => (p - (k ? this.checkpoints[k - 1] : 0)) / pace);
+    // Each section's time is built around the pace the light allows halfway along it.
+    const pace = RACE.PACE_KMH * KMH * this.surf.pace;
+    this.allowance = this.checkpoints.map((p, k) => {
+      const from = k ? this.checkpoints[k - 1] : 0;
+      return (p - from) / (pace * this.sightAt((from + p) / 2 / L));
+    });
     // First section also covers the run from the back of the grid to the line.
     const gridBack = this.track.startZ - this.track.gridSlot(FIELD_SIZE - 1).dist;
-    this.allowance[0] += RACE.START_BONUS + gridBack / pace;
+    this.allowance[0] += RACE.START_BONUS + gridBack / (pace * this.sightAt(0));
 
     // Grid: computer cars in skill order from pole, humans at the back.
     const ai = opts.roster
@@ -94,6 +98,24 @@ class Race {
 
   progress(car) {
     return car.dist - this.track.startZ;
+  }
+
+  // How dark it is (1 = night, 0 = day) `laps` laps from the start line. With a
+  // dawn the night lasts one lap and the next lap gets light.
+  darkAt(laps) {
+    const s = this.season;
+    if (!s.night) return 0;
+    return s.dawn ? 1 - U.clamp(laps - 1, 0, 1) : 1;
+  }
+
+  darkness(car) {
+    return this.darkAt(this.progress(car) / this.track.length);
+  }
+
+  // Pace factor for poor visibility: the season's `sight`, easing to 1 at dawn.
+  sightAt(laps) {
+    const sight = this.season.sight || 1;
+    return this.season.night ? 1 - (1 - sight) * this.darkAt(laps) : sight;
   }
 
   lapOf(car) {
@@ -225,7 +247,7 @@ class Race {
     let maxC = 0;
     for (let k = 0; k < look; k++) maxC = Math.max(maxC, Math.abs(segs[(base + k) % n].curve));
     let target = Math.min(car.ph.top * (cruising ? 0.55 : car.skill), Physics.cornerSpeed(car.ph, this.surf, maxC / CURVE_MAX, 0.8 * car.skill));
-    if (!cruising) target *= this.season.sight || 1; // mist, night: they can't see as far either
+    if (!cruising) target *= this.sightAt(this.progress(car) / L); // mist, night: they can't see as far either
 
     // Traffic: change lanes around slower cars, or tuck in behind them.
     car.laneTimer -= 1 / 60;
