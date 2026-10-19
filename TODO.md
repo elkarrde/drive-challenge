@@ -5,7 +5,8 @@
 - [x] Two-player split screen
 - [x] Chiptune music per season (N toggles)
 - [x] Rename players (profile UUID + name in `localStorage`; AI and duplicate names blocked)
-- [ ] Permanent high-score / fastest-lap records (idea in `FUTURE.md`; storage undecided)
-- [ ] Hand play-test every car on every stage; tune AI skill / time allowances
-- [ ] Try it with a gamepad
-- [ ] Add a LICENSE if the repo goes public
+- [x] Online records: fastest laps, race times, championship totals (`api/`, SQLite on the server)
+- [x] Hand play-test the Lotus and the Lancer Evo (both well balanced)
+- [ ] Hand play-test the Viper
+- [ ] Try it with a gamepad (no gamepad at hand yet)
+- [x] Add a LICENSE (MIT)

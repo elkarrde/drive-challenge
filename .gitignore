@@ -1,0 +1,3 @@
+# Records database and admin config (server only)
+api/data/*
+!api/data/.htaccess

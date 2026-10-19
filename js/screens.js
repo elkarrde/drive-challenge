@@ -119,7 +119,7 @@ const FULL_VIEW = () => Render.makeView(0, 0, SCREEN_W, SCREEN_H, false);
 // ---- title -----------------------------------------------------------------
 class TitleScreen {
   constructor() {
-    this.items = ['1 PLAYER', '2 PLAYERS', 'CONTROLS'];
+    this.items = ['1 PLAYER', '2 PLAYERS', 'RECORDS', 'CONTROLS'];
     this.sel = 0;
     this.showControls = false;
     this.view = FULL_VIEW();
@@ -158,7 +158,8 @@ class TitleScreen {
     if (m.down) { this.sel = U.mod(this.sel + 1, this.items.length); Sfx.blip(); }
     if (m.fire) {
       Sfx.select();
-      if (this.sel === 2) this.showControls = true;
+      if (this.sel === 3) this.showControls = true;
+      else if (this.sel === 2) Game.go(new RecordsScreen());
       else Game.go(new SetupScreen(this.sel + 1));
     }
   }
@@ -172,8 +173,8 @@ class TitleScreen {
     if (this.showControls) return this.drawControls(ctx);
 
     UI.logo(ctx, SCREEN_W / 2, 26);
-    UI.panel(ctx, SCREEN_W / 2 - 90, 132, 180, 64);
-    UI.menu(ctx, this.items, this.sel, SCREEN_W / 2, 142, 18);
+    UI.panel(ctx, SCREEN_W / 2 - 90, 126, 180, 80);
+    UI.menu(ctx, this.items, this.sel, SCREEN_W / 2, 134, 17);
 
     UI.text(ctx, this.demo.season.name + ' · ' + this.follow.name + ' · ' + this.follow.def.short, SCREEN_W / 2, 214, 8, COL.dim);
     UI.text(ctx, '3 CARS · 4 SEASONS · 20 DRIVERS', SCREEN_W / 2, 262, 8, COL.text);
@@ -566,6 +567,13 @@ class ResultsScreen {
     this.humans = humans;
     champ.record(this.rows, humans);
     this.t = 0;
+    this.records = {};
+    humans.forEach((h, i) => {
+      const car = race.humans[i], season = race.season.id, entries = [];
+      if (isFinite(car.bestLap)) entries.push({ kind: 'lap', season, car: h.def.id, value: +car.bestLap.toFixed(2) });
+      if (car.finished) entries.push({ kind: 'race', season, car: h.def.id, value: +car.finishTime.toFixed(2) });
+      Records.submit(h, entries, res => { this.records[h.slot] = res; });
+    });
     Music.stop();
     const anyQ = humans.some(h => h.alive);
     Sfx.fanfare(anyQ);
@@ -605,8 +613,15 @@ class ResultsScreen {
     const y = SCREEN_H - 24;
     const lines = this.humans.map(h => {
       const car = this.race.humans[this.humans.indexOf(h)];
+      const tag = this.humans.length > 1 ? 'P' + (h.slot + 1) + ' ' : '';
+      // Alternate with the player's new top-10 places, if any.
+      const ranked = (this.records[h.slot] || []).filter(r => r.rank && r.improved);
+      if (ranked.length && Math.floor(this.t / 2) % 2) {
+        const what = ranked.map(r => (r.kind === 'lap' ? 'LAP ' : 'RACE ') + U.ordinal(r.rank)).join(' · ');
+        return { text: tag + 'NEW RECORD! ' + what, c: COL.title };
+      }
       const best = isFinite(car.bestLap) ? '  BEST LAP ' + U.formatTime(car.bestLap) : '';
-      return { text: (this.humans.length > 1 ? 'P' + (h.slot + 1) + ' ' : '') + (h.alive ? 'QUALIFIED' : 'NOT QUALIFIED') + best, c: h.alive ? COL.good : COL.bad };
+      return { text: tag + (h.alive ? 'QUALIFIED' : 'NOT QUALIFIED') + best, c: h.alive ? COL.good : COL.bad };
     });
     lines.forEach((l, i) => UI.text(ctx, l.text, SCREEN_W / 2, y - (lines.length - 1 - i) * 10, 8, l.c));
   }
@@ -676,6 +691,10 @@ class EndScreen {
     const season = SEASONS[completed ? SEASONS.length - 1 : champ.history.length - 1];
     this.demo = new Race({ season, roster: champ.roster, attract: true });
     this.follow = this.demo.cars[0];
+    this.records = {};
+    for (const h of champ.humans) {
+      Records.submit(h, [{ kind: 'champ', season: '', car: h.def.id, value: h.points }], res => { this.records[h.slot] = res[0]; });
+    }
   }
 
   enter() { Sfx.fanfare(this.won); Music.play('title'); }
@@ -710,9 +729,69 @@ class EndScreen {
     }
     this.champ.humans.forEach((h, i) => {
       const row = this.rows.find(r => r.human === h);
-      const line = h.name + ': ' + U.ordinal(row.pos) + ' WITH ' + row.pts + ' PTS';
+      const rec = this.records[h.slot];
+      const line = h.name + ': ' + U.ordinal(row.pos) + ' WITH ' + row.pts + ' PTS' + (rec && rec.rank ? ' · ALL-TIME ' + U.ordinal(rec.rank) : '');
       UI.text(ctx, line, cx, 214 + i * 12, 8, COL.p[h.slot]);
     });
     if (UI.blink(this.t > 1.5)) UI.text(ctx, 'PRESS FIRE', cx, SCREEN_H - 24, 8, COL.text);
+  }
+}
+
+// ---- online records -----------------------------------------------------------------
+// One page per season (fastest laps and race times) and one for championship
+// totals; left/right turns the page.
+class RecordsScreen {
+  constructor() {
+    this.page = 0;
+    this.pages = SEASONS.length + 1;
+    if (Records.state !== 'ready') Records.load();
+  }
+
+  enter() { Music.play('title'); }
+
+  update() {
+    const m = Input.menu(0, true);
+    if (m.left) { this.page = U.mod(this.page - 1, this.pages); Sfx.blip(); }
+    if (m.right) { this.page = U.mod(this.page + 1, this.pages); Sfx.blip(); }
+    if (m.fire || m.back) { Sfx.select(); Game.go(new TitleScreen()); }
+  }
+
+  draw(ctx) {
+    const season = SEASONS[Math.min(this.page, SEASONS.length - 1)];
+    drawBackdrop(ctx, season);
+    const champ = this.page === SEASONS.length;
+    UI.text(ctx, 'RECORDS · ' + (champ ? 'CHAMPIONSHIP' : season.name), SCREEN_W / 2, 6, 16, COL.title);
+    UI.text(ctx, '◄ ► PAGE ' + (this.page + 1) + ' OF ' + this.pages + '  ·  FIRE: BACK', SCREEN_W / 2, SCREEN_H - 14, 8, COL.dim);
+    if (Records.state !== 'ready') {
+      const msg = Records.state === 'failed' ? 'RECORDS ARE ONLY AVAILABLE ONLINE' : 'LOADING...';
+      UI.text(ctx, msg, SCREEN_W / 2, 140, 8, COL.text);
+      return;
+    }
+    const D = Records.data;
+    if (champ) {
+      this.table(ctx, 'BEST CHAMPIONSHIP TOTALS', D.champs, 34, 14, r => r.value + ' PTS');
+    } else {
+      this.table(ctx, 'FASTEST LAPS', D.laps[season.id], 30, 11, r => U.formatTime(r.value));
+      this.table(ctx, 'BEST RACE TIMES', D.races[season.id], 156, 11, r => U.formatTime(r.value));
+    }
+  }
+
+  table(ctx, title, rows, y, rowH, fmt) {
+    UI.text(ctx, title, SCREEN_W / 2, y, 8, COL.hi);
+    if (!rows || !rows.length) {
+      UI.text(ctx, 'NO RECORDS YET', SCREEN_W / 2, y + 16, 8, COL.dim);
+      return;
+    }
+    const mine = [0, 1].map(i => Profiles.get(i).id);
+    rows.forEach((r, i) => {
+      const yy = y + 13 + i * rowH, slot = mine.indexOf(r.uuid);
+      const c = slot >= 0 ? COL.p[slot] : COL.text;
+      if (slot >= 0) { ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(16, yy - 2, SCREEN_W - 32, rowH); }
+      UI.text(ctx, String(i + 1), 34, yy, 8, c, 'right');
+      UI.text(ctx, r.name, 44, yy, 8, c, 'left');
+      UI.text(ctx, (CAR_BY_ID[r.car] || {}).short || r.car, 150, yy, 8, c, 'left');
+      UI.text(ctx, fmt(r), 342, yy, 8, c, 'right');
+      UI.text(ctx, r.date, 460, yy, 8, COL.dim, 'right');
+    });
   }
 }

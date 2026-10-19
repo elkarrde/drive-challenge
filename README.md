@@ -33,8 +33,29 @@ After editing anything in `js/`, `css/` or `fonts/`, refresh the hashes before d
 ```
 
 The live copy at https://iso3200.net/drive-challenge/ is published with `./deploy.sh`
-(`--dry-run` to preview). It refuses to run with stale hashes, mirrors the four game
-paths over FTPS through the rclone remote `ftp_iso3200.net`, and checks the page answers.
+(`--dry-run` to preview). It refuses to run with stale hashes, mirrors the game files and
+the records API over FTPS through the rclone remote `ftp_iso3200.net`, and checks the page
+answers. It never touches `api/data/`, where the server keeps the records.
+
+## Online records
+
+Each race sends the players' best lap and race time to `api/records.php`, and the end of a
+championship sends the points total. The server keeps every player's personal best and the
+game shows the top 10 of each table under **RECORDS** on the title screen: fastest laps and
+race times per season, and championship totals. Records follow the player profile (a UUID
+saved in the browser), so a renamed player keeps them.
+
+The endpoint needs PHP 8 with `pdo_sqlite`. It stores everything in `api/data/records.sqlite`,
+which `api/data/.htaccess` keeps off the web. Impossible results (faster than the cars can
+go, more points than a championship gives) are rejected, and each address can submit 60
+times an hour. Bad entries can be removed at `api/admin.php`, whose password hash lives in
+`api/data/config.php` on the server (not in git):
+
+```php
+<?php return ['admin_hash' => '<password_hash() output>', 'salt' => '<random string>'];
+```
+
+Run as a static site (or from `file://`), the game works without records.
 
 ## The cars
 
@@ -81,3 +102,7 @@ To rename a player, move up to the name at the top of the car-select panel and p
 Type the new name, or pick it a letter at a time: up/down changes a letter, right adds one, left
 deletes one. Enter / A saves, Esc / B cancels. A name can be up to 12 characters, and it can't
 match a computer driver or the other player. Names are saved in the browser (`localStorage`).
+
+## Licence
+
+MIT (see `LICENSE`). The bundled font is under its own SIL Open Font License (`fonts/OFL.txt`).

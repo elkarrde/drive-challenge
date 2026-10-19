@@ -6,7 +6,9 @@
 #
 # Uses the rclone remote `ftp_iso3200.net`, which is rooted at the web root of the
 # whole site, so the target must always stay the drive-challenge/ subfolder.
-# The folder is mirrored: files deleted locally are deleted there too.
+# The folder is mirrored: files deleted locally are deleted there too. Only the
+# listed paths take part, so the records database and admin config in
+# api/data/ (server only) are never touched.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -18,12 +20,13 @@ dry=()
 
 ./stamp.sh --check
 
-if [[ -n "$(git status --porcelain -- index.html css js fonts)" ]]; then
+if [[ -n "$(git status --porcelain -- index.html css js fonts api)" ]]; then
   echo "warning: uncommitted changes in the game files; deploying the working copy" >&2
 fi
 
-rclone sync . "$REMOTE" "${dry[@]}" -v \
+rclone sync . "$REMOTE" "${dry[@]}" -v --checkers 1 --transfers 1 \
   --include "/index.html" --include "/css/**" --include "/js/**" --include "/fonts/**" \
+  --include "/api/*.php" --include "/api/data/.htaccess" \
   2>&1 | grep -E "Copied|Deleted|Updated|Skipped|ERROR|NOTICE|There was nothing" | grep -vE "NOTICE: *$" || true
 
 if ((${#dry[@]} == 0)); then

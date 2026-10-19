@@ -22,6 +22,9 @@ const FIELD_SIZE = 20;
 const QUALIFY_POS = 10;
 const LAPS = 3;
 const POINTS = [15, 12, 10, 8, 6, 5, 4, 3, 2, 1];
+// Bump together with RECORDS_VERSION in api/lib.php when a physics or timing
+// change makes the online records unfair to compare with new times.
+const RECORDS_VERSION = 1;
 
 // ---------------------------------------------------------------------------
 // Road surfaces. "wet" decides which acceleration rating a car uses.

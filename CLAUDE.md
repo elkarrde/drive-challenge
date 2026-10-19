@@ -39,9 +39,16 @@ Classic `<script>` files (not ES modules, so `file://` works) that share top-lev
 | `js/render.js` | Segment-based pseudo-3D renderer (Jake Gordon style), weather, HUD; one `view` per screen half |
 | `js/audio.js` | `Sfx`: synthesised engines, tyre squeal, effects, rain |
 | `js/music.js` | `Music`: step-sequenced chiptune, one song per season plus title; `SONGS` data at the top |
+| `js/records.js` | `Records`: loads and submits online records (`api/records.php`); fails quietly offline |
 | `js/input.js` | Keyboard (`e.code`) + Gamepad API; per-player `drive()` / `menu()` |
 | `js/screens.js` | `Game` state machine and screens: title (attract race), setup, stage card, race, results, standings, end |
 | `js/main.js` | Canvas scaling, font wait, fixed 60 Hz loop |
+
+The records server is `api/`: `lib.php` (rules, storage, validation), `records.php` (public
+GET/POST) and `admin.php` (password-protected deletes). It uses SQLite in `api/data/`, which
+is git-ignored except its `.htaccess`, and which the deploy never touches. To test it, serve
+the repo with PHP (the local PHP has no SQLite; use the official image):
+`docker run --rm -u $(id -u):$(id -g) -v $PWD:/app -p 8099:8099 php:8.3-cli php -S 0.0.0.0:8099 -t /app`.
 
 Rendering is at 480×300 and scaled up with `image-rendering: pixelated`. `Render.world()`
 draws in view-local coordinates — the caller translates and clips (see `RaceScreen.draw`).
@@ -55,6 +62,9 @@ draws in view-local coordinates — the caller translates and clips (see `RaceSc
 - Championship points are keyed by id (profile UUID for humans, `ai-<n>` for the roster),
   never by name. Names are display labels only.
 - While a text field has focus, `Input.typing` is set and global hotkeys (M, N) stand down.
+- Bump `RECORDS_VERSION` in `js/data.js` **and** `api/lib.php` together when a physics or
+  timing change makes old records unfair. The fastest plausible times in `api/lib.php`
+  (`MIN_LAP`, `MIN_RACE`) are 80% of the autopilot's best; re-measure them after such a change.
 
 ## Balance
 
