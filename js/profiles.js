@@ -59,6 +59,7 @@ const Profiles = {
     const n = this.clean(name);
     if (!n) return 'NAME IS EMPTY';
     if (AI_DRIVERS.includes(n)) return 'NAME TAKEN';
+    if (!this.list) this.load();
     if (this.list.some((p, i) => i !== slot && p.name === n)) return 'NAME TAKEN';
     return null;
   },
