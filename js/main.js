@@ -29,8 +29,8 @@
     last = now;
     acc += dt;
     Input.poll();
-    if (Input.key('KeyM') && !Input.typing) Sfx.toggleMute();
-    if (Input.key('KeyN') && !Input.typing) toast = { text: Music.toggle() ? 'MUSIC ON' : 'MUSIC OFF', t: 1.5 };
+    if (Input.key('KeyM') && !Input.typing) toast = { text: 'SOUND: ' + Sfx.cycle(), t: 1.5 };
+    if (Input.key('KeyN') && !Input.typing) toast = { text: 'MUSIC: ' + Music.cycle(), t: 1.5 };
     while (acc >= STEP) {
       Game.update(STEP);
       Input.endFrame();
@@ -39,13 +39,14 @@
     Music.update();
     Game.draw(ctx);
     if (toast && (toast.t -= dt) > 0) Render.text(ctx, toast.text, SCREEN_W / 2, SCREEN_H - 24, 8, '#ffe040');
-    if (Sfx.muted) Render.text(ctx, 'MUTE', SCREEN_W - 4, SCREEN_H - 10, 8, '#ff8060', 'right');
+    if (Sfx.muted) Render.text(ctx, 'SOUND OFF', SCREEN_W - 4, SCREEN_H - 10, 8, '#ff8060', 'right');
     requestAnimationFrame(frame);
   }
 
   function boot() {
     Input.init();
     Input.onFirstInput = () => Sfx.init();
+    Sfx.load();
     Sprites.init();
     Music.init();
     Game.screen = new TitleScreen();

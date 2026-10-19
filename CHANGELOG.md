@@ -4,6 +4,12 @@ Versions are `major.minor.build`: major for breaking changes (something players 
 longer carries over, such as a records reset), minor for new features, build for fixes and
 balance tweaks. The version is `VERSION` in `js/data.js` and shows on the title screen.
 
+## 1.3.1 — 2026-10-19
+
+- Sound levels: M steps the sound effects (engines and effects) and N the music through
+  high, off, low and mid, each on its own (high is the old full volume). M no longer silences
+  the music. The levels are remembered; a saved "music off" carries over.
+
 ## 1.3.0 — 2026-10-19
 
 - Cars can corner differently on rain and snow (`cornerWet`). The Viper's wet cornering is now

@@ -4,12 +4,34 @@
 // Synthesised sound (Web Audio). Nothing is loaded from disk: engines are
 // oscillators through a filter, effects are shaped noise bursts and tones.
 // The context can only start after a key press, so init() is called from input.
+// Effects and engines go through `fx`, whose level M steps through; the music
+// has its own level (N, see music.js). Both feed `master`.
 // ---------------------------------------------------------------------------
+
+// Volume steps, in the order a key press moves through them.
+const VOLUME_STEPS = [['HIGH', 1], ['OFF', 0], ['LOW', 0.25], ['MID', 0.5]];
+const volumeStep = name => Math.max(0, VOLUME_STEPS.findIndex(([n]) => n === name));
+
 const Sfx = {
   ctx: null,
   master: null,
-  muted: false,
+  fx: null,
+  step: 0,          // index into VOLUME_STEPS
   noise: null,
+
+  get muted() { return VOLUME_STEPS[this.step][1] === 0; },
+
+  load() {
+    try { this.step = volumeStep(localStorage.getItem('drive-challenge.sound')); } catch (e) { /* storage blocked */ }
+  },
+
+  // Next volume step for the effects; returns its name for the on-screen note.
+  cycle() {
+    this.step = (this.step + 1) % VOLUME_STEPS.length;
+    try { localStorage.setItem('drive-challenge.sound', VOLUME_STEPS[this.step][0]); } catch (e) { /* ignore */ }
+    if (this.fx) this.fx.gain.setTargetAtTime(VOLUME_STEPS[this.step][1], this.ctx.currentTime, 0.02);
+    return VOLUME_STEPS[this.step][0];
+  },
 
   init() {
     if (this.ctx) {
@@ -20,18 +42,15 @@ const Sfx = {
     if (!AC) return;
     this.ctx = new AC();
     this.master = this.ctx.createGain();
-    this.master.gain.value = this.muted ? 0 : 0.55;
+    this.master.gain.value = 0.55;
     this.master.connect(this.ctx.destination);
+    this.fx = this.ctx.createGain();
+    this.fx.gain.value = VOLUME_STEPS[this.step][1];
+    this.fx.connect(this.master);
     const len = this.ctx.sampleRate * 2;
     this.noise = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
     const d = this.noise.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-  },
-
-  toggleMute() {
-    this.muted = !this.muted;
-    if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : 0.55, this.ctx.currentTime, 0.02);
-    return this.muted;
   },
 
   tone(freq, dur, type, vol, delay) {
@@ -43,7 +62,7 @@ const Sfx = {
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(vol || 0.2, t + 0.01);
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g).connect(this.master);
+    o.connect(g).connect(this.fx);
     o.start(t);
     o.stop(t + dur + 0.05);
   },
@@ -59,7 +78,7 @@ const Sfx = {
     const g = this.ctx.createGain();
     g.gain.setValueAtTime(vol, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    src.connect(f).connect(g).connect(this.master);
+    src.connect(f).connect(g).connect(this.fx);
     src.start(t, Math.random());
     src.stop(t + dur + 0.05);
   },
@@ -82,7 +101,7 @@ const Sfx = {
     const ac = this.ctx, E = def.engine;
     const out = ac.createGain();
     out.gain.value = 0;
-    out.connect(this.master);
+    out.connect(this.fx);
 
     const filter = ac.createBiquadFilter();
     filter.type = 'lowpass';
@@ -124,7 +143,7 @@ const Sfx = {
     sqFilter.Q.value = 8;
     const sqGain = ac.createGain();
     sqGain.gain.value = 0;
-    squeal.connect(sqFilter).connect(sqGain).connect(this.master);
+    squeal.connect(sqFilter).connect(sqGain).connect(this.fx);
 
     main.start(); sub.start(); wobble.start(); squeal.start();
     let lastThrottle = 0;
@@ -176,7 +195,7 @@ const Sfx = {
     f.frequency.value = 2500;
     const g = this.ctx.createGain();
     g.gain.value = 0.05;
-    src.connect(f).connect(g).connect(this.master);
+    src.connect(f).connect(g).connect(this.fx);
     src.start();
     return { stop: () => { try { src.stop(); } catch (e) { /* ignore */ } g.disconnect(); } };
   },
