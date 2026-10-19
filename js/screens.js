@@ -195,7 +195,7 @@ class TitleScreen {
       ['SOUND / MUSIC', 'M / N', 'M / N'],
     ];
     rows.forEach((r, i) => {
-      const y = 54 + i * 16, c = i ? COL.text : COL.title;
+      const y = 50 + i * 14, c = i ? COL.text : COL.title;
       UI.text(ctx, r[0], 36, y, 8, COL.dim, 'left');
       UI.text(ctx, r[1], 250, y, 8, c);
       UI.text(ctx, r[2], 380, y, 8, c);
