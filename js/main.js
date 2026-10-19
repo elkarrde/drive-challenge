@@ -29,8 +29,8 @@
     last = now;
     acc += dt;
     Input.poll();
-    if (Input.key('KeyM') && !Input.typing) toast = { text: 'SOUND: ' + Sfx.cycle(), t: 1.5 };
-    if (Input.key('KeyN') && !Input.typing) toast = { text: 'MUSIC: ' + Music.cycle(), t: 1.5 };
+    if (Input.key('KeyM') && !Input.typing) toast = { text: 'MUSIC: ' + Music.cycle(), t: 1.5 };
+    if (Input.key('KeyN') && !Input.typing) toast = { text: 'SOUND: ' + Sfx.cycle(), t: 1.5 };
     while (acc >= STEP) {
       Game.update(STEP);
       Input.endFrame();

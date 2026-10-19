@@ -182,7 +182,7 @@ class TitleScreen {
 
     UI.text(ctx, this.demo.season.name + ' · ' + this.follow.name + ' · ' + this.follow.def.short, SCREEN_W / 2, 214, 8, COL.dim);
     UI.text(ctx, '3 CARS · 4 SEASONS · 20 DRIVERS', SCREEN_W / 2, 262, 8, COL.text);
-    UI.text(ctx, 'M: SOUND   N: MUSIC   ESC: BACK / PAUSE', SCREEN_W / 2, 278, 8, COL.dim);
+    UI.text(ctx, 'M: MUSIC   N: SOUND   ESC: BACK / PAUSE', SCREEN_W / 2, 278, 8, COL.dim);
     UI.text(ctx, 'V' + VERSION, 4, SCREEN_H - 10, 8, COL.dim, 'left');
   }
 
@@ -198,7 +198,7 @@ class TitleScreen {
       ['GEAR DOWN', '.', 'Q'],
       ['SELECT', 'ENTER', 'SPACE'],
       ['PAUSE', 'ESC / P', 'ESC / P'],
-      ['SOUND / MUSIC', 'M / N', 'M / N'],
+      ['MUSIC / SOUND', 'M / N', 'M / N'],
     ];
     rows.forEach((r, i) => {
       const y = 50 + i * 14, c = i ? COL.text : COL.title;

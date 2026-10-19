@@ -5,7 +5,7 @@
 | Field | Value |
 |:--|:--|
 | Phase | building |
-| Version | v1.3.1 |
+| Version | v1.3.2 |
 | Build | n/a |
 | Tests | none |
 | Deployed | https://iso3200.net/drive-challenge/ (FTPS via rclone `ftp_iso3200.net`, 2026-10-19; records API since 2026-10-19) |

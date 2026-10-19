@@ -4,6 +4,14 @@ Versions are `major.minor.build`: major for breaking changes (something players 
 longer carries over, such as a records reset), minor for new features, build for fixes and
 balance tweaks. The version is `VERSION` in `js/data.js` and shows on the title screen.
 
+## 1.3.2 — 2026-10-19
+
+- M now steps the music and N the sound effects (they were the other way round).
+- Fixed: changing the music level while a song played stopped the game (the level shared its
+  name with the song's beat counter).
+- Fixed: "phantom" cars, standing still on the track and passing through you. They were left
+  behind by a race that ended early, such as the demo behind the title screen.
+
 ## 1.3.1 — 2026-10-19
 
 - Sound levels: M steps the sound effects (engines and effects) and N the music through

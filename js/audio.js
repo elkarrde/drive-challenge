@@ -4,8 +4,8 @@
 // Synthesised sound (Web Audio). Nothing is loaded from disk: engines are
 // oscillators through a filter, effects are shaped noise bursts and tones.
 // The context can only start after a key press, so init() is called from input.
-// Effects and engines go through `fx`, whose level M steps through; the music
-// has its own level (N, see music.js). Both feed `master`.
+// Effects and engines go through `fx`, whose level N steps through; the music
+// has its own level (M, see music.js). Both feed `master`.
 // ---------------------------------------------------------------------------
 
 // Volume steps, in the order a key press moves through them.
@@ -16,21 +16,21 @@ const Sfx = {
   ctx: null,
   master: null,
   fx: null,
-  step: 0,          // index into VOLUME_STEPS
+  vol: 0,           // index into VOLUME_STEPS
   noise: null,
 
-  get muted() { return VOLUME_STEPS[this.step][1] === 0; },
+  get muted() { return VOLUME_STEPS[this.vol][1] === 0; },
 
   load() {
-    try { this.step = volumeStep(localStorage.getItem('drive-challenge.sound')); } catch (e) { /* storage blocked */ }
+    try { this.vol = volumeStep(localStorage.getItem('drive-challenge.sound')); } catch (e) { /* storage blocked */ }
   },
 
   // Next volume step for the effects; returns its name for the on-screen note.
   cycle() {
-    this.step = (this.step + 1) % VOLUME_STEPS.length;
-    try { localStorage.setItem('drive-challenge.sound', VOLUME_STEPS[this.step][0]); } catch (e) { /* ignore */ }
-    if (this.fx) this.fx.gain.setTargetAtTime(VOLUME_STEPS[this.step][1], this.ctx.currentTime, 0.02);
-    return VOLUME_STEPS[this.step][0];
+    this.vol = (this.vol + 1) % VOLUME_STEPS.length;
+    try { localStorage.setItem('drive-challenge.sound', VOLUME_STEPS[this.vol][0]); } catch (e) { /* ignore */ }
+    if (this.fx) this.fx.gain.setTargetAtTime(VOLUME_STEPS[this.vol][1], this.ctx.currentTime, 0.02);
+    return VOLUME_STEPS[this.vol][0];
   },
 
   init() {
@@ -45,7 +45,7 @@ const Sfx = {
     this.master.gain.value = 0.55;
     this.master.connect(this.ctx.destination);
     this.fx = this.ctx.createGain();
-    this.fx.gain.value = VOLUME_STEPS[this.step][1];
+    this.fx.gain.value = VOLUME_STEPS[this.vol][1];
     this.fx.connect(this.master);
     const len = this.ctx.sampleRate * 2;
     this.noise = this.ctx.createBuffer(1, len, this.ctx.sampleRate);

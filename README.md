@@ -94,8 +94,8 @@ championship goes on as long as either player qualifies.
 | Gear down | . | Q |
 | Select | Enter | Space |
 
-In a one-player game either set of keys works. Esc or P pauses. M steps the sound effects and
-N the music through high, off, low and mid; the game remembers both.
+In a one-player game either set of keys works. Esc or P pauses. M steps the music and
+N the sound effects through high, off, low and mid; the game remembers both.
 Gamepads work too: stick or D-pad steers, A / RT accelerates, X / LT brakes, RB / LB
 change gear, Start pauses.
 

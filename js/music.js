@@ -157,7 +157,7 @@ compileSongs();
 
 // ---- player -----------------------------------------------------------------
 const Music = {
-  step: 0,          // index into VOLUME_STEPS (audio.js)
+  vol: 0,           // index into VOLUME_STEPS (audio.js)
   want: null,        // id of the song that should be playing
   song: null,
   id: null,
@@ -170,7 +170,7 @@ const Music = {
     try {
       // Older versions stored 'on' / 'off'.
       const saved = localStorage.getItem('drive-challenge.music');
-      this.step = volumeStep(saved === 'off' ? 'OFF' : saved);
+      this.vol = volumeStep(saved === 'off' ? 'OFF' : saved);
     } catch (e) { /* storage blocked */ }
   },
 
@@ -209,20 +209,20 @@ const Music = {
   },
   level(k) { this.levelK = k; this.applyLevel(); },
 
-  get enabled() { return VOLUME_STEPS[this.step][1] > 0; },
+  get enabled() { return VOLUME_STEPS[this.vol][1] > 0; },
 
   // Next volume step for the music; returns its name for the on-screen note.
   cycle() {
-    this.step = (this.step + 1) % VOLUME_STEPS.length;
-    try { localStorage.setItem('drive-challenge.music', VOLUME_STEPS[this.step][0]); } catch (e) { /* ignore */ }
+    this.vol = (this.vol + 1) % VOLUME_STEPS.length;
+    try { localStorage.setItem('drive-challenge.music', VOLUME_STEPS[this.vol][0]); } catch (e) { /* ignore */ }
     this.applyLevel();
-    return VOLUME_STEPS[this.step][0];
+    return VOLUME_STEPS[this.vol][0];
   },
 
   applyLevel() {
     if (!this.out) return;
     const on = this.enabled && !this.paused && this.song;
-    this.out.gain.setTargetAtTime(on ? 0.42 * this.levelK * VOLUME_STEPS[this.step][1] : 0, Sfx.ctx.currentTime, 0.04);
+    this.out.gain.setTargetAtTime(on ? 0.42 * this.levelK * VOLUME_STEPS[this.vol][1] : 0, Sfx.ctx.currentTime, 0.04);
   },
 
   // Called every frame: start/switch songs and schedule notes ahead.

@@ -203,7 +203,9 @@ class Race {
   }
 
   bucketCars() {
-    if (this.bucketed) for (const seg of this.bucketed) seg.cars.length = 0;
+    // Tracks are shared between races, so the first pass also clears cars an
+    // abandoned race (the title demo, a quit race) left behind.
+    for (const seg of this.bucketed || this.track.segments) seg.cars.length = 0;
     this.bucketed = [];
     for (const car of this.cars) {
       const seg = this.track.segAt(car.z);
