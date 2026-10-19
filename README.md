@@ -85,7 +85,8 @@ it gets light through the second lap, and the last lap is in daylight.
 The computer drivers are a little more careful there too, and the clock allows for it.
 
 Each race is three laps from the back of a 20-car grid. A checkpoint every half lap adds
-time to the clock; run out and you're out of the race. Finish in the top 10 to score
+time to the clock; run out and you're out of the race, but you can retry it (as often as
+you like) or give up. Finish in the top 10 to score
 points (15-12-10-8-6-5-4-3-2-1) and go through to the next stage. In a two-player game the
 championship goes on as long as either player qualifies.
 

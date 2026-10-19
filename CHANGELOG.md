@@ -4,6 +4,13 @@ Versions are `major.minor.build`: major for breaking changes (something players 
 longer carries over, such as a records reset), minor for new features, build for fixes and
 balance tweaks. The version is `VERSION` in `js/data.js` and shows on the title screen.
 
+## 2.1.0 — 2026-10-20
+
+- Out of time? A panel offers RETRY RACE (back to the stage card, same stage, points
+  untouched) or GIVE UP (results, as before). It's offered when every human in the race has
+  run out of time; in a two-player game with the other player still going, the championship
+  carries on with them. A best lap set before the clock ran out still goes to the records.
+
 ## 2.0.1 — 2026-10-20
 
 - Summer: the night now ends. The first lap is at night; through the second lap the sky

@@ -463,6 +463,8 @@ class StageScreen {
 }
 
 // ---- the race ---------------------------------------------------------------------
+const RETRY_DELAY = 1.5; // seconds of OUT OF TIME before the retry panel
+
 class RaceScreen {
   constructor(champ, race, humans) {
     this.champ = champ;
@@ -477,8 +479,17 @@ class RaceScreen {
     }
     this.paused = false;
     this.pauseSel = 0;
+    this.outT = 0;                  // time since every human ran out of time
+    this.retrySel = 0;
+    this.gaveUp = false;
     this.engines = [];
     this.ambience = null;
+  }
+
+  // Everyone in the race is out of time: offer the race again rather than end
+  // the championship. (With a player still racing, it carries on as usual.)
+  get retryOffered() {
+    return !this.gaveUp && this.race.humans.every(h => h.out);
   }
 
   enter() { this.startSound(); Music.play(this.race.season.id); Music.level(0.7); }
@@ -503,6 +514,7 @@ class RaceScreen {
 
   update(dt) {
     if (this.paused) return this.updatePause();
+    if (this.retryOffered) return this.updateRetry(dt);
     if (Input.pause()) {
       this.paused = true;
       this.pauseSel = 0;
@@ -511,14 +523,34 @@ class RaceScreen {
       Sfx.blip();
       return;
     }
+    this.step(dt);
+    if (this.race.state === 'over') {
+      Game.go(new ResultsScreen(this.champ, this.race, this.humans));
+    }
+  }
+
+  step(dt) {
     this.race.update(dt, this.controls());
     this.race.humans.forEach((car, i) => {
       const e = this.engines[i];
       if (e) e.update(car.rpm, car.out || car.finished ? 0.3 : car.throttle, car.skid, car.offroad && car.speed > 5 * KMH);
     });
-    if (this.race.state === 'over') {
-      Game.go(new ResultsScreen(this.champ, this.race, this.humans));
-    }
+  }
+
+  // The field races on behind the RETRY RACE / GIVE UP panel.
+  updateRetry(dt) {
+    this.step(dt);
+    this.outT += dt;
+    if (this.outT < RETRY_DELAY) return;
+    for (const car of this.race.humans) car.msg = null;
+    const m = Input.menu(0, true);
+    if (m.up || m.down) { this.retrySel = 1 - this.retrySel; Sfx.blip(); }
+    if (!m.fire) return;
+    Sfx.select();
+    if (this.retrySel === 1) { this.gaveUp = true; return; }
+    // A good lap before the clock ran out still counts for the records.
+    submitRecords(this.race, this.humans);
+    Game.go(new StageScreen(this.champ, this.race.stage));
   }
 
   updatePause() {
@@ -560,11 +592,27 @@ class RaceScreen {
       UI.panel(ctx, SCREEN_W / 2 - 90, 100, 180, 90);
       UI.text(ctx, 'PAUSED', SCREEN_W / 2, 112, 16, COL.title);
       UI.menu(ctx, ['RESUME', 'QUIT RACE'], this.pauseSel, SCREEN_W / 2, 144, 18);
+    } else if (this.retryOffered && this.outT >= RETRY_DELAY) {
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+      UI.panel(ctx, SCREEN_W / 2 - 100, 100, 200, 90);
+      UI.text(ctx, 'OUT OF TIME', SCREEN_W / 2, 112, 16, COL.bad);
+      UI.menu(ctx, ['RETRY RACE', 'GIVE UP'], this.retrySel, SCREEN_W / 2, 144, 18);
     }
   }
 }
 
 // ---- results ----------------------------------------------------------------------
+// Send each human's best lap (and race time, if they finished) to the records.
+function submitRecords(race, humans, done) {
+  humans.forEach((h, i) => {
+    const car = race.humans[i], season = race.season.id, entries = [];
+    if (isFinite(car.bestLap)) entries.push({ kind: 'lap', season, car: h.def.id, value: +car.bestLap.toFixed(2) });
+    if (car.finished) entries.push({ kind: 'race', season, car: h.def.id, value: +car.finishTime.toFixed(2) });
+    Records.submit(h, entries, done && (res => done(h, res)));
+  });
+}
+
 class ResultsScreen {
   constructor(champ, race, humans) {
     this.champ = champ;
@@ -574,12 +622,7 @@ class ResultsScreen {
     champ.record(this.rows, humans);
     this.t = 0;
     this.records = {};
-    humans.forEach((h, i) => {
-      const car = race.humans[i], season = race.season.id, entries = [];
-      if (isFinite(car.bestLap)) entries.push({ kind: 'lap', season, car: h.def.id, value: +car.bestLap.toFixed(2) });
-      if (car.finished) entries.push({ kind: 'race', season, car: h.def.id, value: +car.finishTime.toFixed(2) });
-      Records.submit(h, entries, res => { this.records[h.slot] = res; });
-    });
+    submitRecords(race, humans, (h, res) => { this.records[h.slot] = res; });
     Music.stop();
     const anyQ = humans.some(h => h.alive);
     Sfx.fanfare(anyQ);
