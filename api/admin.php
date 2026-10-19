@@ -16,6 +16,11 @@ if ($hash === '') {
     exit('Admin is not configured (data/config.php).');
 }
 
+// The host's default session directory doesn't keep sessions, so they live
+// beside the database, where the web can't reach them.
+$sessions = DATA_DIR . '/sessions';
+if (!is_dir($sessions)) mkdir($sessions, 0700);
+session_save_path($sessions);
 session_name('dcadmin');
 session_set_cookie_params(['path' => dirname($_SERVER['SCRIPT_NAME']) . '/', 'secure' => true, 'httponly' => true, 'samesite' => 'Strict']);
 session_start();
