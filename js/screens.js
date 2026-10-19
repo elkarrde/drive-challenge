@@ -219,7 +219,8 @@ class SetupScreen {
     this.players = players;
     this.solo = players === 1;
     this.slots = [];
-    for (let i = 0; i < players; i++) this.slots.push({ car: i === 1 ? 2 : 0, manual: false, row: 0, ready: false });
+    // Rows: 0 name, 1 car, 2 gears, 3 start. `edit` is set while renaming.
+    for (let i = 0; i < players; i++) this.slots.push({ car: i === 1 ? 2 : 0, manual: false, row: 1, ready: false, edit: null });
     this.bg = Backgrounds.get(SEASONS[3]);
   }
 
@@ -230,6 +231,10 @@ class SetupScreen {
   }
 
   update(dt) {
+    // Renaming is modal: the keyboard belongs to whoever is typing.
+    const editing = this.slots.findIndex(s => s.edit);
+    if (editing >= 0) return this.updateEdit(this.slots[editing], editing);
+
     let back = false;
     this.slots.forEach((s, i) => {
       const m = Input.menu(i, this.solo);
@@ -238,15 +243,17 @@ class SetupScreen {
         if (m.fire || m.left || m.right || m.up) { s.ready = false; Sfx.blip(); }
         return;
       }
-      if (m.up) { s.row = U.mod(s.row - 1, 3); Sfx.blip(); }
-      if (m.down) { s.row = U.mod(s.row + 1, 3); Sfx.blip(); }
+      if (m.up) { s.row = U.mod(s.row - 1, 4); Sfx.blip(); }
+      if (m.down) { s.row = U.mod(s.row + 1, 4); Sfx.blip(); }
       const dir = (m.right ? 1 : 0) - (m.left ? 1 : 0);
-      if (dir && s.row === 0) { s.car = U.mod(s.car + dir, CARS.length); Sfx.blip(); }
-      if (dir && s.row === 1) { s.manual = !s.manual; Sfx.blip(); }
+      if (dir && s.row === 1) { s.car = U.mod(s.car + dir, CARS.length); Sfx.blip(); }
+      if (dir && s.row === 2) { s.manual = !s.manual; Sfx.blip(); }
       if (m.fire) {
-        if (s.row < 2) { s.row++; Sfx.blip(); } else { s.ready = true; Sfx.select(); }
+        if (s.row === 0) { s.edit = { text: Profiles.get(i).name, error: null }; Sfx.select(); }
+        else if (s.row < 3) { s.row++; Sfx.blip(); } else { s.ready = true; Sfx.select(); }
       }
     });
+    Input.typing = this.slots.some(s => s.edit);
     if (back) { Sfx.blip(); Game.go(new TitleScreen()); return; }
     if (this.slots.every(s => s.ready)) {
       const humans = this.slots.map((s, i) => ({
@@ -254,10 +261,42 @@ class SetupScreen {
         def: CARS[s.car],
         manual: s.manual,
         paint: this.paintFor(i),
-        name: 'PLAYER ' + (i + 1),
+        id: Profiles.get(i).id,
+        name: Profiles.get(i).name,
       }));
       Game.go(new StageScreen(new Championship(humans), 0));
     }
+  }
+
+  // Type on the keyboard, or build the name a letter at a time with the
+  // arrows / d-pad: up and down change the last letter, right adds one,
+  // left deletes one.
+  updateEdit(s, i) {
+    const e = s.edit, pad = Input.padMenu(i, this.solo);
+    let text = e.text;
+    for (const c of Input.typed) {
+      const ch = c.toUpperCase();
+      if (NAME_CHARS.includes(ch) && text.length < NAME_MAX) text += ch;
+    }
+    if (Input.key('Backspace') || Input.key('ArrowLeft') || pad.left) text = text.slice(0, -1);
+    if ((Input.key('ArrowRight') || pad.right) && text.length < NAME_MAX) text += 'A';
+    const step = (Input.key('ArrowUp') || pad.up ? 1 : 0) - (Input.key('ArrowDown') || pad.down ? 1 : 0);
+    if (step) {
+      if (!text) text = step > 0 ? ' ' : 'A';
+      const k = NAME_CHARS.indexOf(text[text.length - 1]);
+      text = text.slice(0, -1) + NAME_CHARS[U.mod(k + step, NAME_CHARS.length)];
+    }
+    if (text !== e.text) { e.text = text; e.error = null; Sfx.blip(); }
+
+    if (Input.key('Escape') || pad.back) {
+      s.edit = null;
+      Sfx.blip();
+    } else if (Input.key('Enter') || Input.key('NumpadEnter') || pad.fire) {
+      e.error = Profiles.problem(text, i);
+      if (e.error) Sfx.beep(150, 0.25);
+      else { Profiles.rename(i, text); s.edit = null; Sfx.select(); }
+    }
+    Input.typing = !!s.edit;
   }
 
   draw(ctx) {
@@ -276,21 +315,29 @@ class SetupScreen {
     UI.text(ctx, 'CHOOSE YOUR CAR', SCREEN_W / 2, 6, 16, COL.title);
     const pw = SCREEN_W / this.players;
     this.slots.forEach((s, i) => this.drawSlot(ctx, s, i, i * pw, pw));
-    UI.text(ctx, 'UP/DOWN SELECT · LEFT/RIGHT CHANGE · ESC BACK', SCREEN_W / 2, SCREEN_H - 11, 8, COL.text);
+    const help = this.slots.some(s => s.edit) ? 'TYPE A NAME, OR UP/DOWN · RIGHT ADD · LEFT DEL'
+      : this.slots.some(s => s.row === 0 && !s.ready) ? 'FIRE RENAME · UP/DOWN SELECT · ESC BACK'
+      : 'UP/DOWN SELECT · LEFT/RIGHT CHANGE · ESC BACK';
+    UI.text(ctx, help, SCREEN_W / 2, SCREEN_H - 11, 8, COL.text);
   }
 
   drawSlot(ctx, s, i, x0, pw) {
     const def = CARS[s.car], cx = x0 + pw / 2, wide = this.players === 1;
     UI.panel(ctx, x0 + 6, 28, pw - 12, SCREEN_H - 44);
     UI.carImage(ctx, def, this.paintFor(i), cx, wide ? 150 : 140, 2, Math.sin(Game.time * 1.5) > 0.85 ? 1 : 0);
-    if (!wide) UI.text(ctx, 'PLAYER ' + (i + 1), cx, 34, 8, COL.p[i]);
-    const arrows = s.row === 0 && !s.ready;
+    const live = !s.ready && !s.edit;
+    const name = s.edit ? s.edit.text + (UI.blink(true) ? '_' : ' ') : live && s.row === 0 ? '> ' + Profiles.get(i).name + ' <' : Profiles.get(i).name;
+    // A plate keeps the name readable over the taller cars.
+    ctx.fillStyle = COL.panel;
+    ctx.fillRect(Math.round(cx - name.length * 4 - 6), 31, name.length * 8 + 12, 14);
+    UI.text(ctx, name, cx, 34, 8, COL.p[i]);
+    const arrows = s.row === 1 && live;
     if (arrows) {
       UI.text(ctx, '◄', x0 + 18, 100, 8, COL.title, 'left');
       UI.text(ctx, '►', x0 + pw - 18, 100, 8, COL.title, 'right');
     }
     UI.text(ctx, def.maker, cx, wide ? 160 : 148, 8, COL.dim);
-    UI.text(ctx, def.model, cx, wide ? 172 : 159, 8, s.row === 0 && !s.ready ? COL.title : COL.text);
+    UI.text(ctx, def.model, cx, wide ? 172 : 159, 8, s.row === 1 && live ? COL.title : COL.text);
     if (wide) UI.text(ctx, def.year + ' · ' + def.spec, cx, 184, 8, COL.dim);
 
     const bw = wide ? 300 : 196, bx = cx - bw / 2;
@@ -304,11 +351,13 @@ class SetupScreen {
     y += 6;
     const gear = (s.manual ? 'MANUAL' : 'AUTOMATIC');
     UI.text(ctx, 'GEARS', bx, y, 8, COL.dim, 'left');
-    UI.text(ctx, (s.row === 1 && !s.ready ? '◄ ' + gear + ' ►' : gear), bx + bw, y, 8, s.row === 1 && !s.ready ? COL.title : COL.text, 'right');
+    UI.text(ctx, (s.row === 2 && live ? '◄ ' + gear + ' ►' : gear), bx + bw, y, 8, s.row === 2 && live ? COL.title : COL.text, 'right');
     y += 16;
     const label = s.ready ? 'READY!' : 'START';
-    const on = s.row === 2 || s.ready;
-    if (!s.ready || UI.blink(true) || this.players === 1) {
+    const on = s.row === 3 || s.ready;
+    if (s.edit) {
+      UI.text(ctx, s.edit.error || 'ENTER/A OK · ESC/B BACK', cx, y, 8, s.edit.error ? COL.bad : COL.dim);
+    } else if (!s.ready || UI.blink(true) || this.players === 1) {
       UI.text(ctx, s.ready ? label : on ? '> ' + label + ' <' : label, cx, y, 8, s.ready ? COL.good : on ? COL.title : COL.text);
     }
     if (s.ready && this.players > 1 && !this.slots.every(o => o.ready)) {
@@ -319,12 +368,13 @@ class SetupScreen {
 
 // ---- championship state -------------------------------------------------------
 class Championship {
-  // humans: [{slot, def, manual, paint, name}]
+  // humans: [{slot, id, def, manual, paint, name}]
+  // Points are keyed by id (profile UUID or roster id), never by name.
   constructor(humans) {
     this.humans = humans.map(h => ({ ...h, points: 0, alive: true }));
     this.roster = makeRoster(U.rng(Math.floor(Math.random() * 1e9)));
-    this.points = new Map(this.roster.map(r => [r.name, 0]));
-    for (const h of this.humans) this.points.set(h.name, 0);
+    this.points = new Map(this.roster.map(r => [r.id, 0]));
+    for (const h of this.humans) this.points.set(h.id, 0);
     this.stage = 0;
     this.history = [];
   }
@@ -335,8 +385,8 @@ class Championship {
   // Feed one race's result rows in; marks humans that failed to qualify.
   record(rows, raceHumans) {
     for (const r of rows) {
-      const name = r.human >= 0 ? raceHumans[r.human].name : r.name;
-      this.points.set(name, (this.points.get(name) || 0) + r.points);
+      const id = r.human >= 0 ? raceHumans[r.human].id : r.id;
+      this.points.set(id, (this.points.get(id) || 0) + r.points);
       if (r.human >= 0) {
         const h = raceHumans[r.human];
         h.points += r.points;
@@ -349,10 +399,10 @@ class Championship {
 
   standings() {
     const rows = [];
-    for (const [name, pts] of this.points) {
-      const human = this.humans.find(h => h.name === name);
-      const ai = this.roster.find(r => r.name === name);
-      rows.push({ name, pts, human: human || null, def: human ? human.def : ai.def });
+    for (const [id, pts] of this.points) {
+      const human = this.humans.find(h => h.id === id) || null;
+      const who = human || this.roster.find(r => r.id === id);
+      rows.push({ id, name: who.name, pts, human, def: who.def });
     }
     rows.sort((a, b) => b.pts - a.pts || (a.human ? -1 : 1));
     rows.forEach((r, i) => { r.pos = i > 0 && rows[i - 1].pts === r.pts ? rows[i - 1].pos : i + 1; });

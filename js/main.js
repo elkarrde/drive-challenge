@@ -29,8 +29,8 @@
     last = now;
     acc += dt;
     Input.poll();
-    if (Input.key('KeyM')) Sfx.toggleMute();
-    if (Input.key('KeyN')) toast = { text: Music.toggle() ? 'MUSIC ON' : 'MUSIC OFF', t: 1.5 };
+    if (Input.key('KeyM') && !Input.typing) Sfx.toggleMute();
+    if (Input.key('KeyN') && !Input.typing) toast = { text: Music.toggle() ? 'MUSIC ON' : 'MUSIC OFF', t: 1.5 };
     while (acc >= STEP) {
       Game.update(STEP);
       Input.endFrame();

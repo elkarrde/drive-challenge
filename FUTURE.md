@@ -13,6 +13,17 @@ would get most of the way there.
 
 Fog stage (night or mist), wind gusts that push the car, a wet-to-dry track.
 
-## Best times
+## Records: high scores and fastest laps
 
-Remember best lap and race time per car and season in `localStorage`.
+A permanent record table: championship high scores (points total, car, date) and the
+fastest lap / race time per season (and maybe per car). Where it lives is undecided:
+
+- `localStorage` only: simple and offline, but it stays on one browser.
+- A small server endpoint on iso3200.net: a shared hall of fame, but it needs a backend,
+  anti-cheat sanity checks and moderation of names.
+- Both: local first, with an optional upload.
+
+Key entries by the player profile's UUID (`Profiles`), not the name, so a rename carries
+the record along. `car.bestLap` is already tracked in `Race`, and `Championship` has the
+final points. Open questions: seed-locked tracks make times comparable across players,
+but a physics or balance change would make old records stale. Version the table?

@@ -31,6 +31,7 @@ Classic `<script>` files (not ES modules, so `file://` works) that share top-lev
 |:--|:--|
 | `js/util.js` | `U`: math, seeded RNG (mulberry32), colour helpers, formatting |
 | `js/data.js` | Constants, `SURFACES`, `CARS` (ratings, paint, gearing, engine voice), `SEASONS`, AI names |
+| `js/profiles.js` | `Profiles`: one player profile per slot (UUID + name) in `localStorage`; name rules |
 | `js/physics.js` | `Physics.derive` maps the 1–5 ratings to numbers; `stepCar` is shared by humans and AI |
 | `js/sprites.js` | Procedural pixel art: scenery, three car rear views (steer poses, brake lights), parallax backgrounds |
 | `js/track.js` | `Track`: seeded segment course per season, closed loop, scenery placement |
@@ -51,6 +52,9 @@ draws in view-local coordinates — the caller translates and clips (see `RaceSc
   Change handling by changing `Physics.derive`, not by special-casing car ids.
 - Tracks are deterministic per season (`season.seed`); AI behaviour uses `Math.random`.
 - Keys are physical codes; never bind Ctrl (Ctrl+W closes the tab).
+- Championship points are keyed by id (profile UUID for humans, `ai-<n>` for the roster),
+  never by name. Names are display labels only.
+- While a text field has focus, `Input.typing` is set and global hotkeys (M, N) stand down.
 
 ## Balance
 

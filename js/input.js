@@ -24,12 +24,15 @@ const Input = {
   pads: [],
   padPrev: [[], [], [], []],
   padHits: [new Set(), new Set(), new Set(), new Set()],
+  typed: [],        // printable characters typed this frame
+  typing: false,    // a text field has focus: global hotkeys stand down
   onFirstInput: null,
 
   init() {
     addEventListener('keydown', e => {
       if (GAME_KEYS.has(e.code)) e.preventDefault();
       if (!e.repeat) this.hits.add(e.code);
+      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) this.typed.push(e.key);
       this.held.add(e.code);
       if (this.onFirstInput) this.onFirstInput();
     });
@@ -61,6 +64,7 @@ const Input = {
   // Call once per frame after the frame's logic has run.
   endFrame() {
     this.hits.clear();
+    this.typed.length = 0;
     for (const s of this.padHits) s.clear();
   },
 
@@ -110,6 +114,14 @@ const Input = {
     }
     if (solo) out.fire = out.fire || this.key('Space') || this.key('Enter');
     out.back = this.key('Escape') || this.key('Backspace');
+    const pad = this.padMenu(player, solo);
+    for (const k in out) out[k] = out[k] || pad[k];
+    return out;
+  },
+
+  // The gamepad half of menu().
+  padMenu(player, solo) {
+    const out = { left: false, right: false, up: false, down: false, fire: false, back: false };
     for (const i of this.padsFor(player, solo)) {
       const h = this.padHits[i];
       out.left = out.left || h.has(14) || h.has(100);

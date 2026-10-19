@@ -24,6 +24,7 @@ function makeRoster(rng) {
   return AI_DRIVERS.map((name, i) => {
     const def = order[i];
     return {
+      id: 'ai-' + i,
       name,
       def,
       paint: def.aiPaints[Math.floor(rng() * def.aiPaints.length)],
@@ -34,7 +35,7 @@ function makeRoster(rng) {
 }
 
 class Race {
-  // opts: { season, stage, humans: [{def, manual, paint, name}], roster, attract }
+  // opts: { season, stage, humans: [{id, def, manual, paint, name}], roster, attract }
   constructor(opts) {
     this.season = opts.season;
     this.stage = opts.stage || 0;
@@ -68,11 +69,11 @@ class Race {
     const aiCount = FIELD_SIZE - humans.length;
     ai.slice(0, aiCount).forEach((r, slot) => {
       const g = this.track.gridSlot(slot);
-      this.cars.push(Physics.createCar(r.def, { name: r.name, paint: r.paint, skill: r.skill, dist: g.dist, x: g.x }));
+      this.cars.push(Physics.createCar(r.def, { id: r.id, name: r.name, paint: r.paint, skill: r.skill, dist: g.dist, x: g.x }));
     });
     humans.forEach((h, i) => {
       const g = this.track.gridSlot(aiCount + i);
-      const car = Physics.createCar(h.def, { name: h.name, paint: h.paint, human: i, manual: h.manual, dist: g.dist, x: g.x });
+      const car = Physics.createCar(h.def, { id: h.id, name: h.name, paint: h.paint, human: i, manual: h.manual, dist: g.dist, x: g.x });
       Object.assign(car, {
         timeLeft: this.allowance[0], nextCp: 0, finished: false, out: false,
         finishTime: 0, msg: null, skyOffset: 0, lastPos: FIELD_SIZE, bestLap: Infinity, lapStart: null,
@@ -334,7 +335,7 @@ class Race {
         const avg = done / Math.max(1, this.time);
         time = this.time + (this.raceDist - done) / Math.max(avg, 40 * KMH);
       }
-      return { car, name: car.name, def: car.def, paint: car.paint, human: car.human, time, dnf };
+      return { car, id: car.id, name: car.name, def: car.def, paint: car.paint, human: car.human, time, dnf };
     });
     rows.sort((a, b) => (a.dnf !== b.dnf ? (a.dnf ? 1 : -1) : a.time - b.time));
     rows.forEach((r, i) => {

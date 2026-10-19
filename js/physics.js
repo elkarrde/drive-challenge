@@ -59,6 +59,7 @@ const Physics = {
       ph: Physics.derive(def),
       paint: opts.paint || def.paint,
       name: opts.name || def.model,
+      id: opts.id || null,
       human: opts.human != null ? opts.human : -1,
       manual: !!opts.manual,
       skill: opts.skill || 1,

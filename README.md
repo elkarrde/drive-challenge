@@ -76,3 +76,8 @@ championship goes on as long as either player qualifies.
 In a one-player game either set of keys works. Esc or P pauses, M mutes all sound, N toggles the music.
 Gamepads work too: stick or D-pad steers, A / RT accelerates, X / LT brakes, RB / LB
 change gear, Start pauses.
+
+To rename a player, move up to the name at the top of the car-select panel and press fire.
+Type the new name, or pick it a letter at a time: up/down changes a letter, right adds one, left
+deletes one. Enter / A saves, Esc / B cancels. A name can be up to 12 characters, and it can't
+match a computer driver or the other player. Names are saved in the browser (`localStorage`).
